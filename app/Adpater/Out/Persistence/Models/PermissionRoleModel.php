@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Permission extends Model
+class PermissionRoleModel extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -14,7 +14,7 @@ class Permission extends Model
      *
      * @var string
      */
-    protected $table = 'permissions';
+    protected $table = 'permission_role';
 
     /**
      *
@@ -23,32 +23,29 @@ class Permission extends Model
     public $incrementing = false;
 
     /**
-     *
      * @var string
      */
     protected $keyType = 'int';
 
     /**
-     *
      * @var array<int, string>
      */
     protected $fillable = [
         'id',
-        'name',
-        'slug',
-        'module',
-        'description',
+        'permission_id',
+        'role_id',
         'version',
     ];
 
     /**
-     *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'id' => 'integer',
+            'permission_id' => 'integer',
+            'role_id' => 'integer',
             'version' => 'integer',
         ];
     }

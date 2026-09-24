@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Ticket extends Model
+class TicketModel extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -122,6 +122,6 @@ class Ticket extends Model
 
     public function attachments(): HasMany
     {
-        return $this->hasMany(TicketAttachment::class, 'ticket_id');
+        return $this->hasMany(TicketAttachmentModel::class, 'ticket_id');
     }
 }

@@ -5,10 +5,9 @@ namespace App\Adapter\Out\Persistence\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TicketMessage extends Model
+class TicketAttachmentModel extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -17,7 +16,7 @@ class TicketMessage extends Model
      *
      * @var string
      */
-    protected $table = 'ticket_messages';
+    protected $table = 'ticket_attachments';
 
     /**
      * O ID (Snowflake) não é auto-incrementável.
@@ -41,13 +40,16 @@ class TicketMessage extends Model
     protected $fillable = [
         'id',
         'ticket_id',
+        'message_id',
         'user_id',
-        'message',
-        'type',
+        'original_filename',
+        'stored_filename',
+        'storage_path',
+        'disk',
+        'mime_type',
+        'size_bytes',
+        'checksum',
         'is_internal',
-        'is_edited',
-        'edited_at',
-        'attachments',
         'version',
     ];
 
@@ -61,17 +63,16 @@ class TicketMessage extends Model
         return [
             'id' => 'integer',
             'ticket_id' => 'integer',
+            'message_id' => 'integer',
             'user_id' => 'integer',
+            'size_bytes' => 'integer',
             'is_internal' => 'boolean',
-            'is_edited' => 'boolean',
-            'edited_at' => 'datetime',
-            'attachments' => 'array',
             'version' => 'integer',
         ];
     }
 
     /**
-     * Chamado ao qual a mensagem pertence.
+     * Chamado ao qual o anexo pertence.
      */
     public function ticket(): BelongsTo
     {
@@ -79,18 +80,18 @@ class TicketMessage extends Model
     }
 
     /**
-     * Autor da mensagem (usuário ou agente).
+     * Mensagem associada ao anexo (caso exista).
+     */
+    public function message(): BelongsTo
+    {
+        return $this->belongsTo(TicketMessageModel::class, 'message_id');
+    }
+
+    /**
+     * Usuário que enviou o anexo.
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * Anexos associados diretamente a esta mensagem.
-     */
-    public function messageAttachments(): HasMany
-    {
-        return $this->hasMany(TicketAttachment::class, 'message_id');
     }
 }

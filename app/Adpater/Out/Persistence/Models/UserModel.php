@@ -2,20 +2,23 @@
 
 namespace App\Adapter\Out\Persistence\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class TicketPriority extends Model
+class UserModel extends Authenticatable
 {
-    use HasFactory, SoftDeletes;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * Tabela associada ao Model.
      *
      * @var string
      */
-    protected $table = 'ticket_priorities';
+    protected $table = 'users';
 
     /**
      * O ID (Snowflake) não é auto-incrementável.
@@ -39,17 +42,23 @@ class TicketPriority extends Model
     protected $fillable = [
         'id',
         'name',
-        'code',
-        'level',
-        'description',
-        'color',
-        'icon',
-        'response_time_minutes',
-        'resolution_time_minutes',
-        'escalation_time_minutes',
-        'is_default',
-        'is_active',
+        'full_name',
+        'email',
+        'password',
+        'status',
+        'email_verified_at',
+        'last_login_at',
         'version',
+    ];
+
+    /**
+     * Atributos ocultos nas respostas JSON/Serializações.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -61,12 +70,9 @@ class TicketPriority extends Model
     {
         return [
             'id' => 'integer',
-            'level' => 'integer',
-            'response_time_minutes' => 'integer',
-            'resolution_time_minutes' => 'integer',
-            'escalation_time_minutes' => 'integer',
-            'is_default' => 'boolean',
-            'is_active' => 'boolean',
+            'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'password' => 'hashed',
             'version' => 'integer',
         ];
     }

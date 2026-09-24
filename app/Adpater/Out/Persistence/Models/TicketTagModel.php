@@ -5,18 +5,22 @@ namespace App\Adapter\Out\Persistence\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TicketAttachment extends Model
+class TicketTagModel extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Tabela associada ao Model.
      *
      * @var string
      */
-    protected $table = 'ticket_attachments';
+    protected $table = 'ticket_tags';
+
+    /**
+     * Apenas created_at é gerenciado pelo Eloquent nesta pivot.
+     */
+    public $timestamps = false;
 
     /**
      * O ID (Snowflake) não é auto-incrementável.
@@ -40,17 +44,10 @@ class TicketAttachment extends Model
     protected $fillable = [
         'id',
         'ticket_id',
-        'message_id',
-        'user_id',
-        'original_filename',
-        'stored_filename',
-        'storage_path',
-        'disk',
-        'mime_type',
-        'size_bytes',
-        'checksum',
-        'is_internal',
+        'tag_id',
+        'created_by',
         'version',
+        'created_at',
     ];
 
     /**
@@ -63,16 +60,15 @@ class TicketAttachment extends Model
         return [
             'id' => 'integer',
             'ticket_id' => 'integer',
-            'message_id' => 'integer',
-            'user_id' => 'integer',
-            'size_bytes' => 'integer',
-            'is_internal' => 'boolean',
+            'tag_id' => 'integer',
+            'created_by' => 'integer',
             'version' => 'integer',
+            'created_at' => 'datetime',
         ];
     }
 
     /**
-     * Chamado ao qual o anexo pertence.
+     * Chamado associado.
      */
     public function ticket(): BelongsTo
     {
@@ -80,18 +76,18 @@ class TicketAttachment extends Model
     }
 
     /**
-     * Mensagem associada ao anexo (caso exista).
+     * Tag associada.
      */
-    public function message(): BelongsTo
+    public function tag(): BelongsTo
     {
-        return $this->belongsTo(TicketMessage::class, 'message_id');
+        return $this->belongsTo(Tag::class, 'tag_id');
     }
 
     /**
-     * Usuário que enviou o anexo.
+     * Usuário/Agente que vinculou a tag ao chamado.
      */
-    public function user(): BelongsTo
+    public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(UserModel::class, 'created_by');
     }
 }

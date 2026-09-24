@@ -2,23 +2,20 @@
 
 namespace App\Adapter\Out\Persistence\Models;
 
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class TicketStatusModel extends Model
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     /**
      * Tabela associada ao Model.
      *
      * @var string
      */
-    protected $table = 'users';
+    protected $table = 'ticket_statuses';
 
     /**
      * O ID (Snowflake) não é auto-incrementável.
@@ -42,23 +39,17 @@ class User extends Authenticatable
     protected $fillable = [
         'id',
         'name',
-        'full_name',
-        'email',
-        'password',
-        'status',
-        'email_verified_at',
-        'last_login_at',
+        'code',
+        'description',
+        'color',
+        'icon',
+        'display_order',
+        'is_initial',
+        'is_final',
+        'stops_sla',
+        'requires_comment',
+        'is_active',
         'version',
-    ];
-
-    /**
-     * Atributos ocultos nas respostas JSON/Serializações.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
     ];
 
     /**
@@ -70,9 +61,12 @@ class User extends Authenticatable
     {
         return [
             'id' => 'integer',
-            'email_verified_at' => 'datetime',
-            'last_login_at' => 'datetime',
-            'password' => 'hashed',
+            'display_order' => 'integer',
+            'is_initial' => 'boolean',
+            'is_final' => 'boolean',
+            'stops_sla' => 'boolean',
+            'requires_comment' => 'boolean',
+            'is_active' => 'boolean',
             'version' => 'integer',
         ];
     }

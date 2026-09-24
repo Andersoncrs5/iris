@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TicketWatcher extends Model
+class TicketWatcherModel extends Model
 {
     use HasFactory;
 
@@ -81,7 +81,7 @@ class TicketWatcher extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 
     /**
@@ -89,6 +89,6 @@ class TicketWatcher extends Model
      */
     public function addedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'added_by');
+        return $this->belongsTo(UserModel::class, 'added_by');
     }
 }

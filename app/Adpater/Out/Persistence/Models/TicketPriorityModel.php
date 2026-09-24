@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Tag extends Model
+class TicketPriorityModel extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -15,7 +15,7 @@ class Tag extends Model
      *
      * @var string
      */
-    protected $table = 'tags';
+    protected $table = 'ticket_priorities';
 
     /**
      * O ID (Snowflake) não é auto-incrementável.
@@ -39,11 +39,15 @@ class Tag extends Model
     protected $fillable = [
         'id',
         'name',
-        'slug',
-        'color',
-        'type',
+        'code',
+        'level',
         'description',
-        'usage_count',
+        'color',
+        'icon',
+        'response_time_minutes',
+        'resolution_time_minutes',
+        'escalation_time_minutes',
+        'is_default',
         'is_active',
         'version',
     ];
@@ -57,7 +61,11 @@ class Tag extends Model
     {
         return [
             'id' => 'integer',
-            'usage_count' => 'integer',
+            'level' => 'integer',
+            'response_time_minutes' => 'integer',
+            'resolution_time_minutes' => 'integer',
+            'escalation_time_minutes' => 'integer',
+            'is_default' => 'boolean',
             'is_active' => 'boolean',
             'version' => 'integer',
         ];
