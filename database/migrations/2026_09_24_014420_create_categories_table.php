@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // 1. Criação da tabela com a Primary Key
         Schema::create('categories', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->primary('categories_id_primary');
             $table->string('name', 100)->unique('categories_name_unique');
@@ -18,10 +19,6 @@ return new class extends Migration
             $table->string('description', 500)->nullable();
             
             $table->unsignedBigInteger('parent_id')->nullable();
-            $table->foreign('parent_id', 'fk_categories_parent')
-                  ->references('id')
-                  ->on('categories')
-                  ->onDelete('set null');
 
             $table->string('icon', 255)->nullable();
             $table->integer('display_order')->default(0);
@@ -34,6 +31,13 @@ return new class extends Migration
             $table->index('parent_id', 'idx_categories_parent_id');
             $table->index('is_active', 'idx_categories_is_active');
             $table->index('display_order', 'idx_categories_display_order');
+        });
+
+        Schema::table('categories', function (Blueprint $table) {
+            $table->foreign('parent_id', 'fk_categories_parent')
+                  ->references('id')
+                  ->on('categories')
+                  ->onDelete('set null');
         });
     }
 

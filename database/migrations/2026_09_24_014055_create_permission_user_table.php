@@ -11,37 +11,34 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('permission_role', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary('permission_role_id_primary');
+        Schema::create('permission_user', function (Blueprint $table) {
+            $table->unsignedBigInteger('id')->primary('permission_user_id_primary');
             
             $table->unsignedBigInteger('permission_id');
-            $table->foreign('permission_id', 'fk_permission_role_permission')
+            $table->foreign('permission_id', 'fk_permission_user_permission')
                   ->references('id')
                   ->on('permissions')
                   ->onDelete('cascade');
 
-            $table->unsignedBigInteger('role_id');
-            $table->foreign('role_id', 'fk_permission_role_role')
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id', 'fk_permission_user_user')
                   ->references('id')
-                  ->on('roles')
+                  ->on('users')
                   ->onDelete('cascade');
 
             $table->unsignedBigInteger('version')->default(1);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['permission_id', 'role_id'], 'permission_role_unique');
+            $table->unique(['permission_id', 'user_id'], 'permission_user_unique');
 
-            $table->index('role_id', 'idx_permission_role_role');
-            $table->index('permission_id', 'idx_permission_role_permission');
+            $table->index('user_id', 'idx_permission_user_user');
+            $table->index('permission_id', 'idx_permission_user_permission');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('permission_role');
+        Schema::dropIfExists('permission_user');
     }
 };

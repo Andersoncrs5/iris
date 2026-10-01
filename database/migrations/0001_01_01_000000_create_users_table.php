@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password', 255);
             $table->enum('status', ['ACTIVE', 'INACTIVE', 'SUSPENDED'])->default('ACTIVE');
             $table->timestamp('email_verified_at')->nullable();
+            $table->json('permissions')->nullable();
             $table->timestamp('last_login_at')->nullable();
             $table->unsignedBigInteger('version')->default(1);
             $table->rememberToken();
