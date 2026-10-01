@@ -8,6 +8,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property int|null $parent_id
+ * @property string|null $icon
+ * @property int $display_order
+ * @property bool $is_active
+ * @property int $version
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read CategoryModel|null $parent
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, CategoryModel> $children
+ */
 class CategoryModel extends Model
 {
     use HasFactory, SoftDeletes;
