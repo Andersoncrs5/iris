@@ -480,6 +480,6 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserModel withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|UserModel withoutTrashed()
  */
-	class UserModel extends \Eloquent {}
+	class User extends \Eloquent {}
 }
 
