@@ -4,9 +4,7 @@ namespace App\Providers;
 
 use App\Bootstrap\PermissionBootstrapper;
 use App\Bootstrap\SuperAdminBootstrapper;
-use App\Models\PermissionModel;
 use App\Models\User;
-use App\Repository\CategoryRepository;
 use App\Repository\Interfaces\ICategoryRepository;
 use App\Repository\Interfaces\IUserRepository;
 use App\Repository\UserRepository;
@@ -29,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(IUserRepository::class, UserRepository::class);
-        $this->app->bind(ICategoryRepository::class, CategoryRepository::class);
+        $this->app->bind(ICategoryRepository::class, \App\Repository\Provider\CategoryRepository::class);
     }
 
     /**
