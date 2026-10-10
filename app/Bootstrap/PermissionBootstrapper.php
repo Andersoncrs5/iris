@@ -64,6 +64,7 @@ class PermissionBootstrapper
         ['name' => 'Create Ticket Status', 'slug' => 'ticket.status.create', 'module' => 'ticket_statuses', 'description' => 'Allows creating ticket statuses.'],
         ['name' => 'Update Ticket Status', 'slug' => 'ticket.status.update', 'module' => 'ticket_statuses', 'description' => 'Allows updating ticket statuses.'],
         ['name' => 'Delete Ticket Status', 'slug' => 'ticket.status.delete', 'module' => 'ticket_statuses', 'description' => 'Allows deleting ticket statuses.'],
+        ['name' => 'Change Ticket Status', 'slug' => 'ticket.status.update', 'module' => 'tickets', 'description' => 'Allows changing the status of a ticket.'],
 
         // ==========================================
         // TICKET PRIORITIES (Prioridades de Tickets)
@@ -83,6 +84,24 @@ class PermissionBootstrapper
         ['name' => 'Update Ticket', 'slug' => 'ticket.update', 'module' => 'tickets', 'description' => 'Allows updating support tickets.'],
         ['name' => 'Delete Ticket', 'slug' => 'ticket.delete', 'module' => 'tickets', 'description' => 'Allows deleting support tickets.'],
 
+        ['name' => 'Read Own Tickets', 'slug' => 'ticket.own.read', 'module' => 'tickets', 'description' => 'Allows viewing tickets owned by the current user.'],
+        ['name' => 'Update Own Tickets', 'slug' => 'ticket.own.update', 'module' => 'tickets', 'description' => 'Allows updating tickets owned by the current user.'],
+        ['name' => 'Delete Own Tickets', 'slug' => 'ticket.own.delete', 'module' => 'tickets', 'description' => 'Allows deleting tickets owned by the current user.'],
+        ['name' => 'Read Assigned Tickets', 'slug' => 'ticket.assigned.read', 'module' => 'tickets', 'description' => 'Allows viewing tickets assigned to the current user.'],
+
+        // ==========================================
+        // TICKET OPERATIONS
+        // ==========================================
+        ['name' => 'Assign Ticket', 'slug' => 'ticket.assign', 'module' => 'tickets', 'description' => 'Allows assigning a ticket to an agent.'],
+        ['name' => 'Unassign Ticket', 'slug' => 'ticket.unassign', 'module' => 'tickets', 'description' => 'Allows removing the assigned agent from a ticket.'],
+        ['name' => 'Change Ticket Priority', 'slug' => 'ticket.priority.update', 'module' => 'tickets', 'description' => 'Allows changing the priority of a ticket.'],
+        ['name' => 'Escalate Ticket', 'slug' => 'ticket.escalate', 'module' => 'tickets', 'description' => 'Allows escalating a ticket to a higher support level.'],
+        ['name' => 'Resolve Ticket', 'slug' => 'ticket.resolve', 'module' => 'tickets', 'description' => 'Allows resolving a ticket.'],
+        ['name' => 'Close Ticket', 'slug' => 'ticket.close', 'module' => 'tickets', 'description' => 'Allows closing a ticket.'],
+        ['name' => 'Reopen Ticket', 'slug' => 'ticket.reopen', 'module' => 'tickets', 'description' => 'Allows reopening a closed or resolved ticket.'],
+        ['name' => 'Cancel Ticket', 'slug' => 'ticket.cancel', 'module' => 'tickets', 'description' => 'Allows cancelling a ticket.'],
+        ['name' => 'Manage Ticket', 'slug' => 'ticket.manage', 'module' => 'tickets', 'description' => 'Allows performing administrative actions on tickets.'],
+
         // ==========================================
         // TICKET MESSAGES (Mensagens/Respostas)
         // ==========================================
@@ -99,6 +118,8 @@ class PermissionBootstrapper
         ['name' => 'Read Ticket Attachment', 'slug' => 'ticket.attachment.read', 'module' => 'ticket_attachments', 'description' => 'Allows viewing/downloading attachments.'],
         ['name' => 'Create Ticket Attachment', 'slug' => 'ticket.attachment.create', 'module' => 'ticket_attachments', 'description' => 'Allows uploading attachments.'],
         ['name' => 'Delete Ticket Attachment', 'slug' => 'ticket.attachment.delete', 'module' => 'ticket_attachments', 'description' => 'Allows deleting attachments.'],
+        ['name' => 'Download Ticket Attachment', 'slug' => 'ticket.attachment.download', 'module' => 'ticket_attachments', 'description' => 'Allows downloading ticket attachments.'],
+        ['name' => 'Update Ticket Attachment', 'slug' => 'ticket.attachment.update', 'module' => 'ticket_attachments', 'description' => 'Allows updating ticket attachment metadata.'],
 
         // ==========================================
         // TICKET WATCHERS (Observadores de Tickets)
@@ -111,37 +132,27 @@ class PermissionBootstrapper
 
     public function run(): void
     {
-        Cache::rememberForever('app_permissions_initialized', function () {
-            
-            /** @var IdGeneratorInterface $idGenerator */
-            $idGenerator = app(IdGeneratorInterface::class);
+        /** @var IdGeneratorInterface $idGenerator */
+        $idGenerator = app(IdGeneratorInterface::class);
 
-            foreach (self::PERMISSIONS as $permission) {
-                $permissionModel = PermissionModel::firstOrCreate(
-                    ['slug' => $permission['slug']], 
-                    fn () => [
-                        'id'          => $idGenerator->generate(), 
-                        'name'        => $permission['name'],
-                        'module'      => $permission['module'],
-                        'description' => $permission['description'],
-                    ]
-                );
+        foreach (self::PERMISSIONS as $permission) {
+            $permissionModel = PermissionModel::firstOrCreate(
+                ['slug' => $permission['slug']], 
+                [
+                    'id'          => $idGenerator->generate(), 
+                    'name'        => $permission['name'],
+                    'module'      => $permission['module'],
+                    'description' => $permission['description'],
+                ]
+            );
 
-                if ($permissionModel->wasRecentlyCreated) {
-                    Log::info("[PermissionBootstrapper] Permission created successfully.", [
-                        'id'     => $permissionModel->id,
-                        'slug'   => $permissionModel->slug,
-                        'module' => $permissionModel->module,
-                    ]);
-                } else {
-                    Log::info("[PermissionBootstrapper] Permission already exists, skipping.", [
-                        'slug'   => $permissionModel->slug,
-                        'module' => $permissionModel->module,
-                    ]);
-                }
+            if ($permissionModel->wasRecentlyCreated) {
+                Log::info("[PermissionBootstrapper] Permission created successfully.", [
+                    'id'     => $permissionModel->id,
+                    'slug'   => $permissionModel->slug,
+                    'module' => $permissionModel->module,
+                ]);
             }
-
-            return true;
-        });
+        }
     }
 }
