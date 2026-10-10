@@ -2,10 +2,13 @@
 
 namespace App\Repository\Interfaces;
 
+use App\DTOs\Category\FilterCategoryDTO;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Models\CategoryModel;
 
 interface ICategoryRepository 
 {
+    public function paginate(FilterCategoryDTO $dto): LengthAwarePaginator;
     public function findById(int $id): ?CategoryModel;
     public function findByIdForUpdate(int $id): ?CategoryModel;
     public function save(CategoryModel $category): CategoryModel;
