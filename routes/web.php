@@ -60,7 +60,6 @@ Route::prefix("/category")->middleware("auth")->controller(CategoryController::c
     Route::delete("/delete/{id}", "destroy")->name("category.destroy")->middleware("can:category.delete");
 });
 
-
 Route::prefix("/tag")->middleware("auth")->controller(TagController::class)->group(function () {
     Route::get("/", "index")->name("tag.list")->middleware("can:tag.list");
 
@@ -88,8 +87,18 @@ Route::prefix("/user")->middleware("auth")->controller(UserController::class)->g
 });
 
 Route::prefix("/ticket-status")->middleware("auth")->controller(TicketStatusController::class)->group(function () {
-    Route::get("/", "list")->name("ticket.status.list")->middleware("can:ticket.status.read");
+    Route::get("/", "index")->name("ticket.status.list")->middleware("can:ticket.status.read");
     Route::get("/create", "create")->name("ticket.status.create")->middleware("can:ticket.status.create");
     
     Route::post('/create', 'createForm')->name('ticket.status.create.form')->middleware('can:ticket.status.create');
+
+    Route::delete("/delete/{id}", "delete")->name("ticket.status.destroy")->middleware("can:ticket.status.delete");
+
+    Route::get("/edit/{id}", "edit")->name("ticket.status.update")->middleware("can:ticket.status.update");
+    Route::put('/edit/{id}', 'editForm')->name('ticket.status.update')->middleware('can:ticket.status.update');
+
+    Route::patch("/toggle-active/{id}", "toggleActive")->name("ticket.status.toggle-active")->middleware("can:ticket.status.update");
+
+    Route::get("/show-details/{id}", "showDetails")->name("ticket.status.show-details");
 });
+
