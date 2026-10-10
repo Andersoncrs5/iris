@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketStatusController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -84,4 +85,11 @@ Route::prefix("/user")->middleware("auth")->controller(UserController::class)->g
     Route::put("/edit-password", "editPasswordForm")->name("user.update.password")->middleware("can:user.update");
 
     Route::get("/list", "list")->name("user.list")->middleware("can:user.read");
+});
+
+Route::prefix("/ticket-status")->middleware("auth")->controller(TicketStatusController::class)->group(function () {
+    Route::get("/", "list")->name("ticket.status.list")->middleware("can:ticket.status.read");
+    Route::get("/create", "create")->name("ticket.status.create")->middleware("can:ticket.status.create");
+    
+    Route::post('/create', 'createForm')->name('ticket.status.create.form')->middleware('can:ticket.status.create');
 });
