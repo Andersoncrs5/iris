@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketStatusController;
@@ -100,5 +101,20 @@ Route::prefix("/ticket-status")->middleware("auth")->controller(TicketStatusCont
     Route::patch("/toggle-active/{id}", "toggleActive")->name("ticket.status.toggle-active")->middleware("can:ticket.status.update");
 
     Route::get("/show-details/{id}", "showDetails")->name("ticket.status.show-details");
+});
+
+
+Route::prefix("/permission")->middleware("auth")->controller(PermissionController::class)->group(function () {
+    Route::get("", "list")->name("permission.list")->middleware("can:permission.read");
+    Route::get("create", "create")->name("permission.create")->middleware("can:permission.create");
+    Route::post("/create", "createForm")->name("permission.create.form")->middleware("can:permission.create");
+
+    Route::delete("/delete/{id}", "delete")->name("permission.destroy")->middleware("can:permission.delete");
+
+    Route::get("/show-details/{id}", "showDetails")->name("permission.show");
+
+    Route::get("/edit/{id}", "edit")->name("permission.update")->middleware("can:permission.update");
+    Route::put('/edit/{id}', 'editForm')->name('permission.update')->middleware('can:permission.update');
+
 });
 
