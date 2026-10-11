@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketPriorityController;
 use App\Http\Controllers\TicketStatusController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -87,6 +88,19 @@ Route::prefix("/user")->middleware("auth")->controller(UserController::class)->g
     Route::get("/list", "list")->name("user.list")->middleware("can:user.read");
 });
 
+Route::prefix("/permission")->middleware("auth")->controller(PermissionController::class)->group(function () {
+    Route::get("", "list")->name("permission.list")->middleware("can:permission.read");
+    Route::get("create", "create")->name("permission.create")->middleware("can:permission.create");
+    Route::post("/create", "createForm")->name("permission.create.form")->middleware("can:permission.create");
+
+    Route::delete("/delete/{id}", "delete")->name("permission.destroy")->middleware("can:permission.delete");
+
+    Route::get("/show-details/{id}", "showDetails")->name("permission.show");
+
+    Route::get("/edit/{id}", "edit")->name("permission.update")->middleware("can:permission.update");
+    Route::put('/edit/{id}', 'editForm')->name('permission.update')->middleware('can:permission.update');
+});
+
 Route::prefix("/ticket-status")->middleware("auth")->controller(TicketStatusController::class)->group(function () {
     Route::get("/", "index")->name("ticket.status.list")->middleware("can:ticket.status.read");
     Route::get("/create", "create")->name("ticket.status.create")->middleware("can:ticket.status.create");
@@ -103,18 +117,19 @@ Route::prefix("/ticket-status")->middleware("auth")->controller(TicketStatusCont
     Route::get("/show-details/{id}", "showDetails")->name("ticket.status.show-details");
 });
 
+Route::prefix("/ticket-priority")->middleware("auth")->controller(TicketPriorityController::class)->group(function () {
+      Route::get('/', 'list')->name('ticket.priority.list')->middleware('can:ticket.priority.read');
 
-Route::prefix("/permission")->middleware("auth")->controller(PermissionController::class)->group(function () {
-    Route::get("", "list")->name("permission.list")->middleware("can:permission.read");
-    Route::get("create", "create")->name("permission.create")->middleware("can:permission.create");
-    Route::post("/create", "createForm")->name("permission.create.form")->middleware("can:permission.create");
+        Route::get('/create', 'create')->name('ticket.priority.create')->middleware('can:ticket.priority.create');
 
-    Route::delete("/delete/{id}", "delete")->name("permission.destroy")->middleware("can:permission.delete");
+        Route::post('/create', 'createForm')->name('ticket.priority.create.form')->middleware('can:ticket.priority.create');
 
-    Route::get("/show-details/{id}", "showDetails")->name("permission.show");
+        Route::get('/edit/{id}', 'edit')->name('ticket.priority.edit')->middleware('can:ticket.priority.update');
 
-    Route::get("/edit/{id}", "edit")->name("permission.update")->middleware("can:permission.update");
-    Route::put('/edit/{id}', 'editForm')->name('permission.update')->middleware('can:permission.update');
+        Route::put('/edit/{id}', 'editForm')->name('ticket.priority.update')->middleware('can:ticket.priority.update');
 
+        Route::delete('/delete/{id}', 'delete')->name('ticket.priority.destroy')->middleware('can:ticket.priority.delete');
+
+        Route::get('/show-details/{id}', 'showDetails')->name('ticket.priority.show-details')->middleware('can:ticket.priority.read');
 });
 
