@@ -21,6 +21,7 @@ class PermissionBootstrapper
         ['name' => 'Create User', 'slug' => 'user.create', 'module' => 'users', 'description' => 'Allows creating new users.'],
         ['name' => 'Update User', 'slug' => 'user.update', 'module' => 'users', 'description' => 'Allows updating user information.'],
         ['name' => 'Delete User', 'slug' => 'user.delete', 'module' => 'users', 'description' => 'Allows deleting users.'],
+        ['name' => 'Restore User', 'slug' => 'user.restore', 'module' => 'users', 'description' => 'Allows restore users.'],
 
         // ==========================================
         // PERMISSIONS & USER PERMISSIONS
@@ -30,13 +31,15 @@ class PermissionBootstrapper
         ['name' => 'Create Permission', 'slug' => 'permission.create', 'module' => 'permissions', 'description' => 'Allows creating new permissions.'],
         ['name' => 'Update Permission', 'slug' => 'permission.update', 'module' => 'permissions', 'description' => 'Allows editing existing permissions.'],
         ['name' => 'Delete Permission', 'slug' => 'permission.delete', 'module' => 'permissions', 'description' => 'Allows deleting permissions.'],
-        
+        ['name' => 'Restore Permission', 'slug' => 'permission.restore', 'module' => 'permissions', 'description' => 'Allows restoring soft-deleted permissions.'],
+
         ['name' => 'List User Permissions', 'slug' => 'permission.user.list', 'module' => 'permissions', 'description' => 'Allows listing permissions assigned to users.'],
         ['name' => 'Read User Permission', 'slug' => 'permission.user.read', 'module' => 'permissions', 'description' => 'Allows viewing a user\'s specific permissions.'],
         ['name' => 'Grant User Permission', 'slug' => 'permission.user.create', 'module' => 'permissions', 'description' => 'Allows granting permissions to a user.'],
         ['name' => 'Update User Permissions', 'slug' => 'permission.user.update', 'module' => 'permissions', 'description' => 'Allows updating user permissions.'],
         ['name' => 'Revoke User Permission', 'slug' => 'permission.user.delete', 'module' => 'permissions', 'description' => 'Allows revoking permissions from a user.'],
         ['name' => 'Link User Permissions', 'slug' => 'permission.user.link', 'module' => 'permissions', 'description' => 'Allows bulk linking permissions to a user.'],
+        ['name' => 'Restore User Permission', 'slug' => 'permission.user.restore', 'module' => 'permissions', 'description' => 'Allows restoring soft-deleted permissions user.'],
 
         // ==========================================
         // CATEGORIES (Categorias)
@@ -46,6 +49,7 @@ class PermissionBootstrapper
         ['name' => 'Create Category', 'slug' => 'category.create', 'module' => 'categories', 'description' => 'Allows creating categories.'],
         ['name' => 'Update Category', 'slug' => 'category.update', 'module' => 'categories', 'description' => 'Allows updating categories.'],
         ['name' => 'Delete Category', 'slug' => 'category.delete', 'module' => 'categories', 'description' => 'Allows deleting categories.'],
+        ['name' => 'Restore Category', 'slug' => 'category.restore', 'module' => 'categories', 'description' => 'Allows restoring soft-deleted categories.'],
 
         // ==========================================
         // TAGS (Tags)
@@ -55,6 +59,7 @@ class PermissionBootstrapper
         ['name' => 'Create Tag', 'slug' => 'tag.create', 'module' => 'tags', 'description' => 'Allows creating new tags.'],
         ['name' => 'Update Tag', 'slug' => 'tag.update', 'module' => 'tags', 'description' => 'Allows updating tags.'],
         ['name' => 'Delete Tag', 'slug' => 'tag.delete', 'module' => 'tags', 'description' => 'Allows deleting tags.'],
+        ['name' => 'Restore Tag', 'slug' => 'tag.restore', 'module' => 'tags', 'description' => 'Allows restoring soft-deleted tags.'],
 
         // ==========================================
         // TICKET STATUSES (Status de Tickets)
@@ -65,6 +70,7 @@ class PermissionBootstrapper
         ['name' => 'Update Ticket Status', 'slug' => 'ticket.status.update', 'module' => 'ticket_statuses', 'description' => 'Allows updating ticket statuses.'],
         ['name' => 'Delete Ticket Status', 'slug' => 'ticket.status.delete', 'module' => 'ticket_statuses', 'description' => 'Allows deleting ticket statuses.'],
         ['name' => 'Change Ticket Status', 'slug' => 'ticket.status.update', 'module' => 'tickets', 'description' => 'Allows changing the status of a ticket.'],
+        ['name' => 'Restore Ticket Status', 'slug' => 'ticket.status.restore', 'module' => 'ticket_statuses', 'description' => 'Allows restoring soft-deleted ticket statuses.'],
 
         // ==========================================
         // TICKET PRIORITIES (Prioridades de Tickets)
@@ -74,6 +80,7 @@ class PermissionBootstrapper
         ['name' => 'Create Ticket Priority', 'slug' => 'ticket.priority.create', 'module' => 'ticket_priorities', 'description' => 'Allows creating ticket priorities.'],
         ['name' => 'Update Ticket Priority', 'slug' => 'ticket.priority.update', 'module' => 'ticket_priorities', 'description' => 'Allows updating ticket priorities.'],
         ['name' => 'Delete Ticket Priority', 'slug' => 'ticket.priority.delete', 'module' => 'ticket_priorities', 'description' => 'Allows deleting ticket priorities.'],
+        ['name' => 'Restore Ticket Priority', 'slug' => 'ticket.priority.restore', 'module' => 'ticket_priorities', 'description' => 'Allows restoring soft-deleted ticket priorities.'],
 
         // ==========================================
         // TICKETS (Tickets Chamados)
@@ -88,6 +95,7 @@ class PermissionBootstrapper
         ['name' => 'Update Own Tickets', 'slug' => 'ticket.own.update', 'module' => 'tickets', 'description' => 'Allows updating tickets owned by the current user.'],
         ['name' => 'Delete Own Tickets', 'slug' => 'ticket.own.delete', 'module' => 'tickets', 'description' => 'Allows deleting tickets owned by the current user.'],
         ['name' => 'Read Assigned Tickets', 'slug' => 'ticket.assigned.read', 'module' => 'tickets', 'description' => 'Allows viewing tickets assigned to the current user.'],
+        ['name' => 'Restore Own Tickets', 'slug' => 'ticket.own.restore', 'module' => 'tickets', 'description' => 'Allows restoring tickets owned by the current user.'],
 
         // ==========================================
         // TICKET OPERATIONS
@@ -100,7 +108,7 @@ class PermissionBootstrapper
         ['name' => 'Close Ticket', 'slug' => 'ticket.close', 'module' => 'tickets', 'description' => 'Allows closing a ticket.'],
         ['name' => 'Reopen Ticket', 'slug' => 'ticket.reopen', 'module' => 'tickets', 'description' => 'Allows reopening a closed or resolved ticket.'],
         ['name' => 'Cancel Ticket', 'slug' => 'ticket.cancel', 'module' => 'tickets', 'description' => 'Allows cancelling a ticket.'],
-        ['name' => 'Manage Ticket', 'slug' => 'ticket.manage', 'module' => 'tickets', 'description' => 'Allows performing administrative actions on tickets.'],
+        ['name' => 'Manage Ticket', 'slug' => 'ticket.manage', 'module' => 'tickets', 'description' => 'Allows performing administrative actions on tickets.'], 
 
         // ==========================================
         // TICKET MESSAGES (Mensagens/Respostas)
@@ -110,6 +118,7 @@ class PermissionBootstrapper
         ['name' => 'Create Ticket Message', 'slug' => 'ticket.message.create', 'module' => 'ticket_messages', 'description' => 'Allows posting messages/replies on tickets.'],
         ['name' => 'Update Ticket Message', 'slug' => 'ticket.message.update', 'module' => 'ticket_messages', 'description' => 'Allows editing ticket messages.'],
         ['name' => 'Delete Ticket Message', 'slug' => 'ticket.message.delete', 'module' => 'ticket_messages', 'description' => 'Allows deleting ticket messages.'],
+        ['name' => 'Restore Ticket Message', 'slug' => 'ticket.message.restore', 'module' => 'ticket_messages', 'description' => 'Allows restoring soft-deleted ticket messages.'],
 
         // ==========================================
         // TICKET ATTACHMENTS (Anexos de Tickets)
@@ -120,6 +129,7 @@ class PermissionBootstrapper
         ['name' => 'Delete Ticket Attachment', 'slug' => 'ticket.attachment.delete', 'module' => 'ticket_attachments', 'description' => 'Allows deleting attachments.'],
         ['name' => 'Download Ticket Attachment', 'slug' => 'ticket.attachment.download', 'module' => 'ticket_attachments', 'description' => 'Allows downloading ticket attachments.'],
         ['name' => 'Update Ticket Attachment', 'slug' => 'ticket.attachment.update', 'module' => 'ticket_attachments', 'description' => 'Allows updating ticket attachment metadata.'],
+        ['name' => 'Restore Ticket Attachment', 'slug' => 'ticket.attachment.restore', 'module' => 'ticket_attachments', 'description' => 'Allows restoring soft-deleted ticket attachments.'],
 
         // ==========================================
         // TICKET WATCHERS (Observadores de Tickets)
@@ -128,6 +138,7 @@ class PermissionBootstrapper
         ['name' => 'Read Ticket Watcher', 'slug' => 'ticket.watcher.read', 'module' => 'ticket_watchers', 'description' => 'Allows viewing ticket watcher details.'],
         ['name' => 'Add Ticket Watcher', 'slug' => 'ticket.watcher.create', 'module' => 'ticket_watchers', 'description' => 'Allows adding watchers to a ticket.'],
         ['name' => 'Remove Ticket Watcher', 'slug' => 'ticket.watcher.delete', 'module' => 'ticket_watchers', 'description' => 'Allows removing watchers from a ticket.'],
+        ['name' => 'Restore Ticket Watcher', 'slug' => 'ticket.watcher.restore', 'module' => 'ticket_watchers', 'description' => 'Allows restoring soft-deleted ticket watchers.'],
     ];
 
     public function run(): void
