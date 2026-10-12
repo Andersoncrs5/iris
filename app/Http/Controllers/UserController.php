@@ -2,24 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\User\FilterUserDTO;
 use App\DTOs\User\UpdatePasswordDTO;
 use App\DTOs\User\UpdateUserDTO;
 use App\Http\Requests\User\UserUpdatePasswordRequest;
 use App\Http\Requests\User\UserUpdateRequest;
+use App\Services\User\ListUserUseCase;
 use App\Services\User\UpdatePasswordUseCase;
 use App\Services\User\UpdateUserUseCase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
     public function __construct(
         private readonly UpdateUserUseCase $updateUserUseCase,
-        private readonly UpdatePasswordUseCase $updatePasswordUseCase
+        private readonly UpdatePasswordUseCase $updatePasswordUseCase,
+        private readonly ListUserUseCase $listUserUseCase,
     ) {}
 
-    public function list() 
+    public function list(Request $request) 
     {
-        
+        Gate::authorize('user.read');
+
+        $filterDto = FilterUserDTO::fromRequest($request);
+
+        $users = $this->listUserUseCase->execute($filterDto);
+
+        return view('user.list', [
+            'users' => $users,
+        ]);
     }
 
     public function editPassword()
