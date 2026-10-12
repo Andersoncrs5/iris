@@ -27,7 +27,11 @@
                 'label'    => 'Tickets',
                 'singular' => 'ticket',
                 'icon'     => 'fa-ticket',
-                'list'     => ['route' => null, 'can' => 'ticket.list'],
+                'list'     => [
+                    'route' => 'ticket.list',
+                    'can'   => 'ticket.read',
+                ],
+
                 'create'   => ['route' => 'ticket.create', 'can' => 'ticket.create'],
                 'active'   => ['ticket.create'],
             ],
