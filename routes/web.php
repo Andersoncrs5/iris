@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->middleware("guest");
 
 Route::prefix("/auth")->controller(AuthController::class)->group(function() {
 
@@ -27,17 +27,7 @@ Route::prefix("/auth")->controller(AuthController::class)->group(function() {
 
     Route::middleware('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'Logout'])->name('logout');
-        
-    });
-
-    // Route::middleware(IsNotLogged::class)->group(function () {
-    //     Route::get('login', "login")->name('login');
-    //     Route::post('logining', "logining")->name('logining');
-
-    //     Route::get('register', "register")->name('register');
-    //     Route::post('registering', "registering")->name('registering');
-    // });
-        
+    }); 
 });
 
 Route::prefix("/dashboard")->controller(DashboardController::class)->middleware("auth")->group(function () {
@@ -45,7 +35,13 @@ Route::prefix("/dashboard")->controller(DashboardController::class)->middleware(
 });
 
 Route::prefix("/ticket")->middleware("auth")->controller(TicketController::class)->group(function () {
+    Route::get('/', 'list')->name('ticket.list')->middleware('can:ticket.read');
+
     Route::get("/create", "create")->name("ticket.create")->middleware("can:ticket.create");
+
+    Route::post('/create', 'createForm')->name('ticket.create.form')->middleware('can:ticket.create');
+
+    Route::get('/show-details/{id}', 'showDetails')->name('ticket.show-details');
 });
 
 Route::prefix("/category")->middleware("auth")->controller(CategoryController::class)->group(function () {
@@ -118,18 +114,18 @@ Route::prefix("/ticket-status")->middleware("auth")->controller(TicketStatusCont
 });
 
 Route::prefix("/ticket-priority")->middleware("auth")->controller(TicketPriorityController::class)->group(function () {
-      Route::get('/', 'list')->name('ticket.priority.list')->middleware('can:ticket.priority.read');
+    Route::get('/', 'list')->name('ticket.priority.list')->middleware('can:ticket.priority.read');
 
-        Route::get('/create', 'create')->name('ticket.priority.create')->middleware('can:ticket.priority.create');
+    Route::get('/create', 'create')->name('ticket.priority.create')->middleware('can:ticket.priority.create');
 
-        Route::post('/create', 'createForm')->name('ticket.priority.create.form')->middleware('can:ticket.priority.create');
+    Route::post('/create', 'createForm')->name('ticket.priority.create.form')->middleware('can:ticket.priority.create');
 
-        Route::get('/edit/{id}', 'edit')->name('ticket.priority.edit')->middleware('can:ticket.priority.update');
+    Route::get('/edit/{id}', 'edit')->name('ticket.priority.edit')->middleware('can:ticket.priority.update');
 
-        Route::put('/edit/{id}', 'editForm')->name('ticket.priority.update')->middleware('can:ticket.priority.update');
+    Route::put('/edit/{id}', 'editForm')->name('ticket.priority.update')->middleware('can:ticket.priority.update');
 
-        Route::delete('/delete/{id}', 'delete')->name('ticket.priority.destroy')->middleware('can:ticket.priority.delete');
+    Route::delete('/delete/{id}', 'delete')->name('ticket.priority.destroy')->middleware('can:ticket.priority.delete');
 
-        Route::get('/show-details/{id}', 'showDetails')->name('ticket.priority.show-details')->middleware('can:ticket.priority.read');
+    Route::get('/show-details/{id}', 'showDetails')->name('ticket.priority.show-details')->middleware('can:ticket.priority.read');
 });
 
