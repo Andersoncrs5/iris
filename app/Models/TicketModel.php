@@ -92,12 +92,12 @@ class TicketModel extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(UserModel::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function agent(): BelongsTo
     {
-        return $this->belongsTo(UserModel::class, 'agent_id');
+        return $this->belongsTo(User::class, 'agent_id');
     }
 
     public function category(): BelongsTo
