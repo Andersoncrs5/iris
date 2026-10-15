@@ -384,6 +384,33 @@
                                     <span><span class="block font-medium">Reopen ticket</span><span class="mt-0.5 block text-[11px] text-gray-500">Return to active workflow</span></span>
                                 </button>
                             @endif
+                            
+                            @can('ticket.message.create')
+                                <a
+                                    href="{{ route('ticket.message.create', [
+                                        'id' => $ticket->id,
+                                        'parentId' => $ticket->parent_id,
+                                    ]) }}"
+                                    role="menuitem"
+                                    class="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-gray-300 transition hover:bg-indigo-500/10 hover:text-white"
+                                >
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition group-hover:bg-indigo-500/20">
+                                        <i class="fa-solid fa-reply text-sm" aria-hidden="true"></i>
+                                    </span>
+
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block text-sm font-semibold">
+                                            Reply to message
+                                        </span>
+
+                                        <span class="mt-1 block text-xs text-gray-500 group-hover:text-gray-400">
+                                            Respond to this specific comment
+                                        </span>
+                                    </span>
+
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-gray-600 group-hover:text-indigo-400" aria-hidden="true"></i>
+                                </a>
+                            @endcan
 
                             @if ($deleteUrl)
                                 <div class="my-1 border-t border-white/[0.08]"></div>
@@ -393,6 +420,7 @@
                                     <span><span class="block font-medium">{{ $canDeleteOwn ? 'Delete my ticket' : 'Delete ticket' }}</span><span class="mt-0.5 block text-[11px] text-red-300/60">Remove this ticket</span></span>
                                 </button>
                             @endif
+                            
                         </div>
                     </div>
                 @endif
