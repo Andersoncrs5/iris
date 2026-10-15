@@ -30,18 +30,61 @@ Route::prefix("/auth")->controller(AuthController::class)->group(function() {
     }); 
 });
 
-Route::prefix("/dashboard")->controller(DashboardController::class)->middleware("auth")->group(function () {
-    Route::get("/", "index")->name("dashboard");
+Route::prefix('/dashboard')->controller(DashboardController::class)->middleware('auth')->group(function () {
+    Route::get('/', 'index')->name('dashboard');
 });
 
 Route::prefix("/ticket")->middleware("auth")->controller(TicketController::class)->group(function () {
     Route::get('/', 'list')->name('ticket.list')->middleware('can:ticket.read');
 
+    Route::get('/my-tickets', 'listMyTicket')->name('ticket.listMyTicket');
+
     Route::get("/create", "create")->name("ticket.create")->middleware("can:ticket.create");
 
     Route::post('/create', 'createForm')->name('ticket.create.form')->middleware('can:ticket.create');
 
-    Route::get('/show-details/{id}', 'showDetails')->name('ticket.show-details');
+    Route::get('/show-details/{id}', 'showDetails')->whereNumber('id')->name('ticket.show-details');
+
+
+    Route::get('/{id}/edit', 'edit')->whereNumber('id')->name('ticket.edit')->middleware('can:ticket.update');
+
+    Route::put('/{id}', 'editForm')->whereNumber('id')->name('ticket.update')->middleware('can:ticket.update');
+
+    Route::get('/{id}/edit-own', 'editMyTicket')
+        ->whereNumber('id')
+        ->name('ticket.own.edit')
+        ->middleware('can:ticket.own.update');
+
+    Route::put('/{id}/edit-own', 'editMyTicketForm')
+        ->whereNumber('id')
+        ->name('ticket.own.update')
+        ->middleware('can:ticket.own.update');
+
+    Route::delete("/delete/{id}", "delete")
+        ->name("ticket.delete")
+        ->whereNumber('id')
+        ->middleware("can:ticket.delete");
+    
+    Route::delete("/delete/{id}/own", "deleteOwn")
+        ->whereNumber('id')
+        ->name("ticket.own.destroy")
+        ->middleware("can:ticket.own.delete");
+
+    Route::patch('/close/{id}', 'close')
+        ->whereNumber('id')
+        ->name('ticket.close')
+        ->middleware('can:ticket.close');
+
+    Route::patch('/resolve/{id}', 'resolvedAt')
+        ->whereNumber('id')
+        ->name('ticket.resolve')
+        ->middleware('can:ticket.resolve');
+
+    // Reopen ticket
+    Route::patch('/reopen/{id}', 'reopen')
+        ->whereNumber('id')
+        ->name('ticket.reopen')
+        ->middleware('can:ticket.reopen');
 });
 
 Route::prefix("/category")->middleware("auth")->controller(CategoryController::class)->group(function () {
@@ -49,13 +92,13 @@ Route::prefix("/category")->middleware("auth")->controller(CategoryController::c
     Route::post("/store", "store")->name("category.store")->middleware("can:category.create");
     Route::get("/list", "index")->name("category.list")->middleware("can:category.list");
 
-    Route::get("/edit/{id}", "edit")->name("category.edit")->middleware("can:category.update");
+    Route::get("/edit/{id}", "edit")->whereNumber('id')->name("category.edit")->middleware("can:category.update");
     
-    Route::put("/update/{id}", "update")->name("category.update")->middleware("can:category.update");
+    Route::put("/update/{id}", "update")->whereNumber('id')->name("category.update")->middleware("can:category.update");
     
-    Route::patch("/toggle-active/{id}", "toggleActive")->name("category.toggle-active")->middleware("can:category.update");
+    Route::patch("/toggle-active/{id}", "toggleActive")->whereNumber('id')->name("category.toggle-active")->middleware("can:category.update");
     
-    Route::delete("/delete/{id}", "destroy")->name("category.destroy")->middleware("can:category.delete");
+    Route::delete("/delete/{id}", "destroy")->whereNumber('id')->name("category.destroy")->middleware("can:category.delete");
 });
 
 Route::prefix("/tag")->middleware("auth")->controller(TagController::class)->group(function () {
@@ -64,10 +107,10 @@ Route::prefix("/tag")->middleware("auth")->controller(TagController::class)->gro
     Route::get("/create", "create")->name("tag.create")->middleware("can:tag.create");
     Route::post("store", "store")->name("tag.store")->middleware("can:tag.create");
 
-    Route::get("/edit/{id}", "edit")->name("tag.edit")->middleware("can:tag.update");
-    Route::put("/update/{id}", "update")->name("tag.update")->middleware("can:tag.update");
-    Route::patch("/toggle-active/{id}", "toggleActive")->name("tag.toggle-active")->middleware("can:tag.update");
-    Route::delete("/delete/{id}", "destroy")->name("tag.destroy")->middleware("can:tag.delete");
+    Route::get("/edit/{id}", "edit")->whereNumber('id')->name("tag.edit")->middleware("can:tag.update");
+    Route::put("/update/{id}", "update")->whereNumber('id')->name("tag.update")->middleware("can:tag.update");
+    Route::patch("/toggle-active/{id}", "toggleActive")->whereNumber('id')->name("tag.toggle-active")->middleware("can:tag.update");
+    Route::delete("/delete/{id}", "destroy")->whereNumber('id')->name("tag.destroy")->middleware("can:tag.delete");
 });
 
 Route::prefix("/user")->middleware("auth")->controller(UserController::class)->group(function () {
