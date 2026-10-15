@@ -476,14 +476,135 @@
 
                                 {{-- Actions --}}
                                 <td class="px-5 py-4 align-top">
-                                    <div class="flex items-center justify-end gap-2">
-                                        @if (\Illuminate\Support\Facades\Route::has('ticket.show-details'))
-                                            <a href="{{ route('ticket.show-details', $ticket->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-gray-400 transition hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60" title="View ticket" aria-label="View ticket #{{ $ticket->ticket_number }}">
-                                                <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                                            </a>
-                                        @endif
+                                    <div
+                                        x-data="{
+                                            open: false,
+                                            top: 0,
+                                            left: 0,
+                                            toggle() {
+                                                this.open = !this.open;
+                                                if (this.open) this.$nextTick(() => this.place());
+                                            },
+                                            place() {
+                                                const btn = this.$refs.trigger.getBoundingClientRect();
+                                                const menu = this.$refs.menu;
+                                                const gap = 8;
+
+                                                // Prefere abrir à esquerda do botão; se não couber, abre à direita
+                                                let left = btn.left - menu.offsetWidth - gap;
+                                                if (left < gap) left = btn.right + gap;
+
+                                                // Evita estourar a parte de baixo da janela
+                                                let top = btn.top;
+                                                const maxTop = window.innerHeight - menu.offsetHeight - gap;
+                                                if (top > maxTop) top = Math.max(gap, maxTop);
+
+                                                this.left = left;
+                                                this.top = top;
+                                            },
+                                        }"
+                                        @keydown.escape.window="open = false"
+                                        @scroll.window.capture="open = false"
+                                        @resize.window="open = false"
+                                        class="flex justify-end"
+                                    >
+                                        {{-- Botão dos três pontos --}}
+                                        <button
+                                            type="button"
+                                            x-ref="trigger"
+                                            @click="toggle()"
+                                            :aria-expanded="open.toString()"
+                                            aria-haspopup="true"
+                                            aria-label="Ticket actions"
+                                            title="Ticket actions"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.02] text-gray-400 transition hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
+                                        >
+                                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                                        </button>
+
+                                        {{-- Menu teleportado para o body (fora do overflow da tabela) --}}
+                                        <template x-teleport="body">
+                                            <div
+                                                x-ref="menu"
+                                                x-show="open"
+                                                x-cloak
+                                                @click.outside="if (! $refs.trigger.contains($event.target)) open = false"
+                                                x-transition:enter="transition ease-out duration-150"
+                                                x-transition:enter-start="opacity-0 scale-95"
+                                                x-transition:enter-end="opacity-100 scale-100"
+                                                x-transition:leave="transition ease-in duration-100"
+                                                x-transition:leave-start="opacity-100"
+                                                x-transition:leave-end="opacity-0"
+                                                :style="`top: ${top}px; left: ${left}px`"
+                                                class="fixed z-50 w-56 origin-top-right rounded-xl border border-white/10 bg-[#11111c] p-1.5 text-gray-100 shadow-2xl shadow-black/50"
+                                                role="menu"
+                                                aria-label="Ticket actions"
+                                            >
+                                                {{-- Cabeçalho --}}
+                                                <div class="border-b border-white/[0.08] px-3 py-2.5">
+                                                    <p class="text-xs font-semibold text-white">Ticket #{{ $ticket->ticket_number }}</p>
+                                                    <p class="mt-1 truncate text-[11px] text-gray-500">{{ $ticket->subject }}</p>
+                                                </div>
+
+                                                {{-- View details --}}
+                                                @if (\Illuminate\Support\Facades\Route::has('ticket.show-details') && auth()->user()?->can('ticket.read'))
+                                                    <a href="{{ route('ticket.show-details', $ticket->id) }}" role="menuitem" @click="open = false"
+                                                    class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/[0.06] hover:text-white focus:outline-none focus-visible:bg-white/[0.06]">
+                                                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
+                                                            <i class="fa-regular fa-eye text-xs" aria-hidden="true"></i>
+                                                        </span>
+                                                        <span>
+                                                            <span class="block font-medium">View details</span>
+                                                            <span class="mt-0.5 block text-[11px] text-gray-500">Inspect ticket information</span>
+                                                        </span>
+                                                    </a>
+                                                @endif
+
+                                                {{-- Edit (admin) --}}
+                                                @can('update', $ticket)
+                                                    @if (\Illuminate\Support\Facades\Route::has('ticket.edit'))
+                                                        <a href="{{ route('ticket.edit', $ticket->id) }}" role="menuitem" @click="open = false"
+                                                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/[0.06] hover:text-white focus:outline-none focus-visible:bg-white/[0.06]">
+                                                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+                                                                <i class="fa-solid fa-pen-to-square text-xs" aria-hidden="true"></i>
+                                                            </span>
+                                                            <span>
+                                                                <span class="block font-medium">Edit ticket</span>
+                                                                <span class="mt-0.5 block text-[11px] text-gray-500">Manage ticket information</span>
+                                                            </span>
+                                                        </a>
+                                                    @endif
+                                                @endcan
+
+                                                {{-- Edit (owner) --}}
+                                                @can('updateOwn', $ticket)
+                                                    @if (\Illuminate\Support\Facades\Route::has('ticket.own.edit'))
+                                                        <a href="{{ route('ticket.own.edit', $ticket->id) }}" role="menuitem" @click="open = false"
+                                                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-300 transition hover:bg-white/[0.06] hover:text-white focus:outline-none focus-visible:bg-white/[0.06]">
+                                                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-400">
+                                                                <i class="fa-solid fa-pen text-xs" aria-hidden="true"></i>
+                                                            </span>
+                                                            <span>
+                                                                <span class="block font-medium">Edit my ticket</span>
+                                                                <span class="mt-0.5 block text-[11px] text-gray-500">Edit your own request</span>
+                                                            </span>
+                                                        </a>
+                                                    @endif
+                                                @endcan
+
+                                                {{-- Sem ações --}}
+                                                @if (
+                                                    ! auth()->user()?->can('ticket.read')
+                                                    && ! auth()->user()?->can('update', $ticket)
+                                                    && ! auth()->user()?->can('updateOwn', $ticket)
+                                                )
+                                                    <p class="px-3 py-4 text-center text-xs text-gray-500">No actions available.</p>
+                                                @endif
+                                            </div>
+                                        </template>
                                     </div>
                                 </td>
+
                             </tr>
                         @empty
                             <tr>
