@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketMessageController;
 use App\Http\Controllers\TicketPriorityController;
 use App\Http\Controllers\TicketStatusController;
 use App\Http\Controllers\UserController;
@@ -172,3 +173,7 @@ Route::prefix("/ticket-priority")->middleware("auth")->controller(TicketPriority
     Route::get('/show-details/{id}', 'showDetails')->name('ticket.priority.show-details')->middleware('can:ticket.priority.read');
 });
 
+Route::prefix("ticket-message")->middleware("auth")->controller(TicketMessageController::class)->group(function () {
+    Route::get("create/{id}", "create")->whereNumber('id')->name("ticket.message.create");
+    Route::post("create/{id}", "createForm")->name("ticket.message.create.form");
+});
