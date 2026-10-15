@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Bootstrap\PermissionBootstrapper;
 use App\Bootstrap\SuperAdminBootstrapper;
+use App\Models\TicketModel;
 use App\Models\User;
+use App\Policies\TicketModelPolicy;
 use App\Repository\Interfaces\ICategoryRepository;
 use App\Repository\Interfaces\IUserRepository;
 use App\Repository\UserRepository;
@@ -35,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(TicketModel::class, TicketModelPolicy::class);
+
         $this->boostarp();
         $this->registerGates();
     }

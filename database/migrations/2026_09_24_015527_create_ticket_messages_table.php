@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ticket_messages', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')
-                ->primary('ticket_messages_id_primary');
+            $table->unsignedBigInteger('id');
+
+            $table->primary('id', 'ticket_messages_id_primary');
 
             $table->unsignedBigInteger('ticket_id');
 
@@ -48,18 +49,18 @@ return new class extends Migration
 
             $table->foreign('user_id', 'fk_ticket_messages_user')
                 ->references('id')
-                ->on('users');
+                ->on('users')
+                ->restrictOnDelete();
 
-            $table->foreign('parent_id', 'fk_ticket_messages_parent')
-                ->references('id')
-                ->on('ticket_messages')
-                ->nullOnDelete();
-
-            $table->index('ticket_id', 'idx_ticket_messages_ticket');
             $table->index('user_id', 'idx_ticket_messages_user');
             $table->index('parent_id', 'idx_ticket_messages_parent');
             $table->index('type', 'idx_ticket_messages_type');
             $table->index('created_at', 'idx_ticket_messages_created_at');
+
+            $table->index(
+                ['ticket_id', 'created_at'],
+                'idx_ticket_messages_ticket_created'
+            );
 
             $table->index(
                 ['ticket_id', 'is_internal'],
@@ -70,6 +71,13 @@ return new class extends Migration
                 ['ticket_id', 'parent_id'],
                 'idx_ticket_messages_ticket_parent'
             );
+        });
+
+        Schema::table('ticket_messages', function (Blueprint $table) {
+            $table->foreign('parent_id', 'fk_ticket_messages_parent')
+                ->references('id')
+                ->on('ticket_messages')
+                ->nullOnDelete();
         });
     }
 

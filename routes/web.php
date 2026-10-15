@@ -126,6 +126,13 @@ Route::prefix("/user")->middleware("auth")->controller(UserController::class)->g
     Route::put("/edit-password", "editPasswordForm")->name("user.update.password")->middleware("can:user.update");
 
     Route::get("/list", "list")->name("user.list")->middleware("can:user.read");
+
+    Route::get("/show/{id}", "show")->name("user.show")->whereNumber('id');
+
+    Route::patch('/toggle-active/{id}/{status}','toggleActive',)
+        ->whereNumber('id')
+        ->where('status', 'ACTIVE|INACTIVE|SUSPENDED')
+        ->name('user.toggle.active');
 });
 
 Route::prefix("/permission")->middleware("auth")->controller(PermissionController::class)->group(function () {
@@ -174,6 +181,8 @@ Route::prefix("/ticket-priority")->middleware("auth")->controller(TicketPriority
 });
 
 Route::prefix("ticket-message")->middleware("auth")->controller(TicketMessageController::class)->group(function () {
+    Route::get("/show/{id}", "show")->whereNumber('id')->name("ticket.message.show");
+
     Route::get("create/{id}", "create")->whereNumber('id')->name("ticket.message.create");
     Route::post("create/{id}", "createForm")->name("ticket.message.create.form");
 });

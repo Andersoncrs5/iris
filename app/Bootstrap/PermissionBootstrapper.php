@@ -116,6 +116,7 @@ class PermissionBootstrapper
         ['name' => 'List Ticket Messages', 'slug' => 'ticket.message.list', 'module' => 'ticket_messages', 'description' => 'Allows listing messages inside a ticket.'],
         ['name' => 'Read Ticket Message', 'slug' => 'ticket.message.read', 'module' => 'ticket_messages', 'description' => 'Allows reading specific ticket messages.'],
         ['name' => 'Create Ticket Message', 'slug' => 'ticket.message.create', 'module' => 'ticket_messages', 'description' => 'Allows posting messages/replies on tickets.'],
+        ['name' => 'Create Ticket Message Internal', 'slug' => 'ticket.message.internal.create', 'module' => 'ticket_messages', 'description' => 'Allows posting messages/replies on tickets Internal.'],
         ['name' => 'Update Ticket Message', 'slug' => 'ticket.message.update', 'module' => 'ticket_messages', 'description' => 'Allows editing ticket messages.'],
         ['name' => 'Delete Ticket Message', 'slug' => 'ticket.message.delete', 'module' => 'ticket_messages', 'description' => 'Allows deleting ticket messages.'],
         ['name' => 'Restore Ticket Message', 'slug' => 'ticket.message.restore', 'module' => 'ticket_messages', 'description' => 'Allows restoring soft-deleted ticket messages.'],

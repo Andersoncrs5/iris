@@ -4,6 +4,7 @@
 
 @section('content')
     @php
+        $ticketId = $ticket->id;
         $status = $ticket->status;
         $priority = $ticket->priority;
 
@@ -264,6 +265,13 @@
                 </div>
 
                 <div class="flex flex-col-reverse gap-3 border-t border-white/[0.07] pt-5 sm:flex-row sm:items-center sm:justify-end">
+                    <a
+                        href="{{ route("ticket.show-details",  ["id" => $ticketId]) }}"
+                        class="inline-flex items-center justify-center rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-gray-300 transition hover:bg-white/[0.04] hover:text-white"
+                    >
+                        See Ticket
+                    </a>
+
                     <a
                         href="{{ url()->previous() }}"
                         class="inline-flex items-center justify-center rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-gray-300 transition hover:bg-white/[0.04] hover:text-white"

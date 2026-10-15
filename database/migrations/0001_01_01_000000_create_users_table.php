@@ -1,5 +1,6 @@
 <?php
 
+use App\Utils\Enums\User\UserStatusEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,10 @@ return new class extends Migration
             $table->string('full_name', 150);
             $table->string('email', 255)->unique('users_email_unique');
             $table->string('password', 255);
-            $table->enum('status', ['ACTIVE', 'INACTIVE', 'SUSPENDED'])->default('ACTIVE');
+            $table->enum(
+                'status',
+                UserStatusEnum::values(),
+            )->default(UserStatusEnum::ACTIVE->value);
             $table->timestamp('email_verified_at')->nullable();
             $table->json('permissions')->nullable();
             $table->timestamp('last_login_at')->nullable();

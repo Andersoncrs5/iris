@@ -387,24 +387,22 @@
                             
                             @can('ticket.message.create')
                                 <a
-                                    href="{{ route('ticket.message.create', [
-                                        'id' => $ticket->id,
-                                        'parentId' => $ticket->parent_id,
-                                    ]) }}"
+                                    href="{{ route('ticket.message.create', ['id' => $ticket->id]) }}"
                                     role="menuitem"
+                                    @click="actionsOpen = false"
                                     class="group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-gray-300 transition hover:bg-indigo-500/10 hover:text-white"
                                 >
                                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition group-hover:bg-indigo-500/20">
-                                        <i class="fa-solid fa-reply text-sm" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-comment-dots text-sm" aria-hidden="true"></i>
                                     </span>
 
                                     <span class="min-w-0 flex-1">
                                         <span class="block text-sm font-semibold">
-                                            Reply to message
+                                            Add a comment
                                         </span>
 
                                         <span class="mt-1 block text-xs text-gray-500 group-hover:text-gray-400">
-                                            Respond to this specific comment
+                                            Add to the ticket conversation
                                         </span>
                                     </span>
 
@@ -778,6 +776,191 @@
 
                     </div>
 
+                </section>
+
+                {{-- Ticket conversation --}}
+                <section class="overflow-hidden rounded-2xl border border-white/10 bg-gray-950/60 shadow-xl shadow-black/10 backdrop-blur-xl">
+                    <div class="flex flex-col gap-4 border-b border-white/[0.08] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-400/15 bg-indigo-500/10 text-indigo-300">
+                                <i class="fa-solid fa-comments" aria-hidden="true"></i>
+                            </div>
+                            <div>
+                                <h2 class="font-semibold text-white">Conversation</h2>
+                                <p class="mt-0.5 text-xs text-gray-500">
+                                    Comments and replies about this ticket.
+                                </p>
+                            </div>
+                        </div>
+
+                        @if ($isActiveTicket)
+                            @can('ticket.message.create')
+                                <a href="{{ route('ticket.message.create', ['id' => $ticket->id]) }}"
+                                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-500 px-4 text-sm font-semibold text-white transition hover:bg-indigo-400 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/20">
+                                    <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+                                    Add a comment
+                                </a>
+                            @endcan
+                        @endif
+                    </div>
+
+                    @if ($messages->isEmpty())
+                        <div class="px-5 py-12 text-center sm:px-6">
+                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-gray-500">
+                                <i class="fa-regular fa-comments text-lg" aria-hidden="true"></i>
+                            </div>
+                            <h3 class="mt-4 text-sm font-semibold text-gray-200">No comments yet</h3>
+                            <p class="mx-auto mt-1 max-w-sm text-sm leading-6 text-gray-500">
+                                Start the conversation by adding the first comment to this ticket.
+                            </p>
+                        </div>
+                    @else
+                        <div class="divide-y divide-white/[0.07]">
+                            @foreach ($messages as $message)
+                                @php
+                                    $messageTypeValue = $message->type instanceof \BackedEnum
+                                        ? $message->type->value
+                                        : (string) $message->type;
+                                @endphp
+
+                                <article class="px-5 py-5 sm:px-6">
+                                    <div class="flex items-start gap-3 sm:gap-4">
+                                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-indigo-400/15 bg-indigo-500/10 text-sm font-semibold text-indigo-200">
+                                            {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($message->user?->name ?? 'U', 0, 1)) }}
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <span class="text-sm font-semibold text-gray-100">
+                                                        <a href = {{ route("user.show", ["id" => $message->user?->id ]) }} > {{ $message->user?->name ?? 'Unknown user' }}  </a>
+                                                    </span>
+
+                                                    @if ($message->is_internal)
+                                                        <span class="inline-flex items-center gap-1 rounded-md border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                                                            <i class="fa-solid fa-lock text-[9px]" aria-hidden="true"></i>
+                                                            Internal note   
+                                                        </span>
+                                                    @elseif ($messageTypeValue === 'SYSTEM_EVENT')
+                                                        <span class="rounded-md border border-sky-400/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+                                                            System event
+                                                        </span>
+                                                    @else
+                                                        <span class="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                                            Comment
+                                                        </span>
+                                                    @endif
+                                                </div>
+
+                                                <time datetime="{{ $message->created_at?->toIso8601String() }}" class="text-xs text-gray-500">
+                                                    {{ $message->created_at?->format('M d, Y · H:i') ?? 'Unknown date' }}
+                                                </time>
+                                            </div>
+
+                                            <p class="mt-3 whitespace-pre-line break-words text-sm leading-6 text-gray-300">{{ $message->message }}</p>
+
+                                            @if ($message->is_edited && $message->edited_at)
+                                                <p class="mt-2 text-[11px] text-gray-600">
+                                                    Edited {{ $message->edited_at->format('M d, Y · H:i') }}
+                                                </p>
+                                            @endif
+
+                                            <div class="mt-4 flex flex-wrap items-center gap-4">
+                                                <a href="{{ route('ticket.message.show', ['id' => $message->id]) }}"
+                                                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-300 transition hover:text-sky-200">
+                                                    <i class="fa-solid fa-eye text-[10px]" aria-hidden="true"></i>
+                                                    View details
+                                                </a>
+
+                                                @if ($isActiveTicket)
+                                                    @can('ticket.message.create')
+                                                        <a href="{{ route('ticket.message.create', ['id' => $ticket->id, 'parentId' => $message->id]) }}"
+                                                            class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-300 transition hover:text-indigo-200">
+                                                            <i class="fa-solid fa-reply text-[10px]" aria-hidden="true"></i>
+                                                            Reply
+                                                        </a>
+                                                    @endcan
+                                                @endif
+
+                                                @if ($message->replies->isNotEmpty())
+                                                    <span class="text-xs text-gray-600">
+                                                        {{ $message->replies->count() }} {{ \Illuminate\Support\Str::plural('reply', $message->replies->count()) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                            @if ($message->replies->isNotEmpty())
+                                                <div class="mt-5 space-y-4 border-l border-white/10 pl-4 sm:pl-5">
+                                                    @foreach ($message->replies as $reply)
+                                                        @php
+                                                            $replyTypeValue = $reply->type instanceof \BackedEnum
+                                                                ? $reply->type->value
+                                                                : (string) $reply->type;
+                                                        @endphp
+
+                                                        <div class="flex items-start gap-3">
+                                                            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xs font-semibold text-gray-300">
+                                                                {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($reply->user?->name ?? 'U', 0, 1)) }}
+                                                            </div>
+
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                                                    <div class="flex flex-wrap items-center gap-2">
+                                                                        <span class="text-sm font-semibold text-gray-100">
+                                                                            <a href = {{ route("user.show", ["id" => $message->user?->id ]) }} > {{ $reply->user?->name ?? 'Unknown user' }}  </a>
+                                                                        </span>
+
+                                                                        @if ($reply->is_internal)
+                                                                            <span class="rounded-md border border-amber-400/20 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300">Internal note</span>
+                                                                        @elseif ($replyTypeValue === 'SYSTEM_EVENT')
+                                                                            <span class="rounded-md border border-sky-400/20 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold text-sky-300">System event</span>
+                                                                        @endif
+
+                                                                        {{-- Replies are kept one level deep in this view. Replying to a reply
+                                                                             adds another response to the original comment thread. --}}
+                                                                        @if ($isActiveTicket)
+                                                                            @can('ticket.message.create')
+                                                                                <a href="{{ route('ticket.message.create', ['id' => $ticket->id, 'parentId' => $message->id]) }}"
+                                                                                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-300 transition hover:text-indigo-200">
+                                                                                    <i class="fa-solid fa-reply text-[10px]" aria-hidden="true"></i>
+                                                                                    Reply
+                                                                                </a>
+                                                                            @endcan
+                                                                        @endif
+
+                                                                    </div>
+                                                                    
+                                                                    <time datetime="{{ $reply->created_at?->toIso8601String() }}" class="text-xs text-gray-500">
+                                                                        {{ $reply->created_at?->format('M d, Y · H:i') ?? 'Unknown date' }}
+                                                                    </time>
+                                                                </div>
+
+                                                                <p class="mt-2 whitespace-pre-line break-words text-sm leading-6 text-gray-400">{{ $reply->message }}</p>
+
+                                                                <div class="mt-3">
+                                                                    <a href="{{ route('ticket.message.show', ['id' => $reply->id]) }}"
+                                                                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-300 transition hover:text-sky-200">
+                                                                        <i class="fa-solid fa-eye text-[10px]" aria-hidden="true"></i>
+                                                                        View details
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </article>
+                            @endforeach
+                        </div>
+
+                        @if ($messages->hasPages())
+                            <div class="border-t border-white/[0.07] px-5 py-4 sm:px-6">
+                                {{ $messages->links() }}
+                            </div>
+                        @endif
+                    @endif
                 </section>
 
             </div>

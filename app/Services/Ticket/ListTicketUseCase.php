@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 class ListTicketUseCase
 {
     public function execute(
-        FilterTicketDTO $dto
+        FilterTicketDTO $dto,
+        int | null $id = null
     ): LengthAwarePaginator {
         $query = TicketModel::query()
             ->with([
@@ -158,6 +159,10 @@ class ListTicketUseCase
             $dto->sortBy->value,
             $dto->sortOrder
         );
+
+        if ($id != null) {
+            $query->where("user_id", $id);
+        }
 
         return $query
             ->paginate($dto->perPage)

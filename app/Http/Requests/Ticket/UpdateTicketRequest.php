@@ -16,18 +16,12 @@ class UpdateTicketRequest extends FormRequest
     {
         $normalized = [];
 
-        foreach (['subject', 'description'] as $field) {
-            if ($this->exists($field) && is_string($this->input($field))) {
-                $normalized[$field] = trim($this->input($field));
-            }
-        }
-
         foreach ([
             'version',
-            'agent_id',
-            'team_id',
-            'category_id',
-            'priority_id',
+            'status_id',
+            'first_response_at',
+            'resolved_at',
+            'closed_at',
         ] as $field) {
             if ($this->exists($field) && $this->input($field) === '') {
                 $normalized[$field] = null;
@@ -46,48 +40,32 @@ class UpdateTicketRequest extends FormRequest
                 'min:1',
             ],
 
-            'subject' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'description' => [
-                'required',
-                'string',
-            ],
-
-            'category_id' => [
+            'status_id' => [
+                'sometimes',
                 'required',
                 'integer',
                 'min:1',
-                Rule::exists('categories', 'id')
-                    ->whereNull('deleted_at'),
-            ],
-
-            'priority_id' => [
-                'required',
-                'integer',
-                'min:1',
-                Rule::exists('ticket_priorities', 'id')
+                Rule::exists('ticket_statuses', 'id')
                     ->whereNull('deleted_at')
                     ->where('is_active', true),
             ],
 
-            'agent_id' => [
+            'first_response_at' => [
                 'sometimes',
                 'nullable',
-                'integer',
-                'min:1',
-                Rule::exists('users', 'id'),
+                'date',
             ],
 
-            // The migration does not define a team foreign key.
-            'team_id' => [
+            'resolved_at' => [
                 'sometimes',
                 'nullable',
-                'integer',
-                'min:1',
+                'date',
+            ],
+
+            'closed_at' => [
+                'sometimes',
+                'nullable',
+                'date',
             ],
         ];
     }
@@ -99,29 +77,14 @@ class UpdateTicketRequest extends FormRequest
             'version.integer' => 'The record version must be an integer.',
             'version.min' => 'The record version must be at least 1.',
 
-            'subject.required' => 'The ticket subject is required.',
-            'subject.string' => 'The ticket subject must be a string.',
-            'subject.max' => 'The ticket subject may not exceed 255 characters.',
+            'status_id.required' => 'The ticket status is required when provided.',
+            'status_id.integer' => 'The ticket status ID must be an integer.',
+            'status_id.min' => 'The ticket status ID must be valid.',
+            'status_id.exists' => 'The selected status does not exist or is inactive.',
 
-            'description.required' => 'The ticket description is required.',
-            'description.string' => 'The ticket description must be a string.',
-
-            'category_id.required' => 'Please select a ticket category.',
-            'category_id.integer' => 'The category ID must be an integer.',
-            'category_id.min' => 'The category ID must be valid.',
-            'category_id.exists' => 'The selected category does not exist or is no longer available.',
-
-            'priority_id.required' => 'Please select a ticket priority.',
-            'priority_id.integer' => 'The priority ID must be an integer.',
-            'priority_id.min' => 'The priority ID must be valid.',
-            'priority_id.exists' => 'The selected priority does not exist or is inactive.',
-
-            'agent_id.integer' => 'The assigned agent ID must be an integer.',
-            'agent_id.min' => 'The assigned agent ID must be valid.',
-            'agent_id.exists' => 'The selected agent does not exist.',
-
-            'team_id.integer' => 'The assigned team ID must be an integer.',
-            'team_id.min' => 'The assigned team ID must be valid.',
+            'first_response_at.date' => 'The first response timestamp must be a valid date.',
+            'resolved_at.date' => 'The resolution timestamp must be a valid date.',
+            'closed_at.date' => 'The closure timestamp must be a valid date.',
         ];
     }
 }
