@@ -5,86 +5,90 @@ namespace App\DTOs\Ticket;
 final readonly class UpdateTicketDTO
 {
     /**
-     * @param int $version Version read by the client before editing.
-     * @param int $categoryId ID of the ticket category.
-     * @param int $priorityId ID of the ticket priority.
-     * @param string $subject Ticket subject.
-     * @param string $description Ticket description.
-     * @param int|null $agentId Assigned agent ID.
-     * @param int|null $teamId Assigned team ID.
+     * @param array<string> $providedFields
      */
     public function __construct(
         public int $version,
-        public string $subject,
-        public string $description,
-        public int $categoryId,
-        public int $priorityId,
-        public ?int $agentId = null,
-        public ?int $teamId = null,
+        public ?int $statusId,
+        public ?string $firstResponseAt,
+        public ?string $resolvedAt,
+        public ?string $closedAt,
+        private array $providedFields = [],
     ) {}
 
     /**
-     * Create the DTO from validated request data.
-     *
-     * @param array<string, mixed> $data Validated request data.
-     *
-     * @return self
+     * Creates the DTO from validated request data.
      */
     public static function fromArray(array $data): self
     {
+        $editableFields = [
+            'status_id',
+            'first_response_at',
+            'resolved_at',
+            'closed_at',
+        ];
+
         return new self(
             version: (int) $data['version'],
-            subject: trim((string) $data['subject']),
-            description: trim((string) $data['description']),
-            categoryId: (int) $data['category_id'],
-            priorityId: (int) $data['priority_id'],
-            agentId: self::nullableInteger($data['agent_id'] ?? null),
-            teamId: self::nullableInteger($data['team_id'] ?? null),
+
+            statusId: array_key_exists('status_id', $data)
+                ? (int) $data['status_id']
+                : null,
+
+            firstResponseAt: self::nullableString(
+                $data['first_response_at'] ?? null
+            ),
+
+            resolvedAt: self::nullableString(
+                $data['resolved_at'] ?? null
+            ),
+
+            closedAt: self::nullableString(
+                $data['closed_at'] ?? null
+            ),
+
+            providedFields: array_values(
+                array_intersect($editableFields, array_keys($data))
+            ),
         );
     }
 
     /**
-     * Convert the DTO into model attribute names.
-     *
-     * The version is excluded because the use case must compare it
-     * against the persisted version and increment it itself.
-     *
-     * @return array{
-     *     subject: string,
-     *     description: string,
-     *     category_id: int,
-     *     priority_id: int,
-     *     agent_id: int|null,
-     *     team_id: int|null
-     * }
+     * Checks whether a field was included in the request.
      */
-    public function toArray(): array
+    public function wasProvided(string $field): bool
     {
-        return [
-            'subject' => $this->subject,
-            'description' => $this->description,
-            'category_id' => $this->categoryId,
-            'priority_id' => $this->priorityId,
-            'agent_id' => $this->agentId,
-            'team_id' => $this->teamId,
-        ];
+        return in_array($field, $this->providedFields, true);
     }
 
     /**
-     * Normalize a value into a nullable integer.
+     * Returns only fields provided for updating.
      *
-     * @param mixed $value Value to normalize.
-     *
-     * @return int|null
+     * The version is kept separate for concurrency control.
      */
-    private static function nullableInteger(mixed $value): ?int
+    public function toArray(): array
     {
-        if ($value === null || $value === '') {
+        $fields = [
+            'status_id' => $this->statusId,
+            'first_response_at' => $this->firstResponseAt,
+            'resolved_at' => $this->resolvedAt,
+            'closed_at' => $this->closedAt,
+        ];
+
+        return array_intersect_key(
+            $fields,
+            array_flip($this->providedFields)
+        );
+    }
+
+    private static function nullableString(mixed $value): ?string
+    {
+        if ($value === null) {
             return null;
         }
 
-        $integer = filter_var($value, FILTER_VALIDATE_INT);
+        $value = trim((string) $value);
 
-        return $integer === false ? null : $integer;
+        return $value === '' ? null : $value;
     }
 }
