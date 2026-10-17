@@ -4,12 +4,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PermissionUserController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TicketMessageController;
 use App\Http\Controllers\TicketPriorityController;
 use App\Http\Controllers\TicketStatusController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PermissionRequestsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -184,5 +186,91 @@ Route::prefix("ticket-message")->middleware("auth")->controller(TicketMessageCon
     Route::get("/show/{id}", "show")->whereNumber('id')->name("ticket.message.show");
 
     Route::get("create/{id}", "create")->whereNumber('id')->name("ticket.message.create");
-    Route::post("create/{id}", "createForm")->name("ticket.message.create.form");
+    Route::post("create/{id}", "createForm")
+        ->whereNumber('id') 
+        ->name("ticket.message.create.form");
+
+    Route::delete('/{id}', 'delete')
+        ->whereNumber('id')
+        ->name('ticket.message.delete');
+
+    Route::get('/edit/{id}', 'edit')
+        ->whereNumber('id')
+        ->name('ticket.message.edit');
+
+    Route::put('/edit-form/{id}', 'editForm')
+        ->whereNumber('id')
+        ->name('ticket.message.edit.form');
+});
+
+Route::prefix("permission-request")->middleware("auth")->controller(PermissionRequestsController::class)->group(function () {
+    Route::get('/', 'myRequest')
+        ->name('permission.request.my');
+
+    Route::get('/create', 'create')
+        ->name('permission.request.create');
+
+    Route::post('/create', 'createForm')
+        ->name('permission.request.create.form');
+
+    Route::get('/{id}', 'show')
+        ->whereNumber('id')
+        ->name('permission.request.show');
+
+    Route::get('/{id}/edit', 'edit')
+        ->whereNumber('id')
+        ->name('permission.request.edit');
+
+    Route::put('/{id}', 'update')
+        ->whereNumber('id')
+        ->name('permission.request.update');
+
+    Route::delete('/{id}', 'delete')
+        ->whereNumber('id')
+        ->name('permission.request.delete');
+
+    Route::post('/{id}/mark-viewed', 'markViewed')
+        ->whereNumber('id')
+        ->name('permission.request.mark-viewed');
+
+    Route::get('/{id}/change-status', 'changeStatus')
+        ->whereNumber('id')
+        ->name('permission.request.change-status');
+
+    Route::post('/{id}/change-status', 'changeStatusForm')
+        ->whereNumber('id')
+        ->name('permission.request.change-status.form');
+
+    Route::get('/list', 'list')
+        ->middleware('can:permission.request.list')
+        ->name('permission.request.list');
+});
+
+Route::prefix("permission-user")->middleware("auth")->controller(PermissionUserController::class)->group(function () {
+    Route::get('/list', 'list')
+        ->middleware('can:permission.user.list')
+        ->name('permission.user.list');
+
+    Route::get('/create', 'create')
+        ->middleware('can:permission.user.create')
+        ->name('permission.user.create');
+
+    Route::post('/create', 'createForm')
+        ->middleware('can:permission.user.create')
+        ->name('permission.user.create.form');
+
+    Route::get('/{id}/view-details', 'viewDetails')
+        ->whereNumber('id')
+        ->middleware('can:permission.user.view')
+        ->name('permission.user.view-details');
+
+    Route::delete('/{id}', 'delete')
+        ->whereNumber('id')
+        ->middleware('can:permission.user.delete')
+        ->name('permission.user.delete');
+
+    Route::post('/{id}/restore', 'restore')
+        ->whereNumber('id')
+        ->middleware('can:permission.user.restore')
+        ->name('permission.user.restore');
 });
