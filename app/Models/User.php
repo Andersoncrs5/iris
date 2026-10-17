@@ -74,6 +74,51 @@ class User extends Authenticatable
     }
 
     /**
+     * Adiciona uma permissão ao array permissions.
+     *
+     * Retorna false se a permissão já existir.
+     */
+    public function addPermission(string $permissionSlug): bool
+    {
+        $permissions = $this->permissions ?? [];
+
+        if (in_array($permissionSlug, $permissions, true)) {
+            return false;
+        }
+
+        $permissions[] = $permissionSlug;
+
+        $this->permissions = array_values($permissions);
+
+        return $this->save();
+    }
+
+    /**
+     * Remove uma permissão do array permissions.
+     *
+     * Retorna false se a permissão não existir no array.
+     */
+    public function removePermission(string $permissionSlug): bool
+    {
+        $permissions = $this->permissions ?? [];
+
+        $filteredPermissions = array_values(
+            array_filter(
+                $permissions,
+                static fn (string $permission): bool => $permission !== $permissionSlug
+            )
+        );
+
+        if (count($filteredPermissions) === count($permissions)) {
+            return false;
+        }
+
+        $this->permissions = $filteredPermissions;
+
+        return $this->save();
+    }
+
+    /**
      * Verifica se o usuário é Super Admin.
      */
     public function isSuperAdmin(): bool
@@ -100,4 +145,52 @@ class User extends Authenticatable
         // 2. Checa na tabela pivot via relacionamento ('permissionRelations')
         return $this->permissionRelations->contains('slug', $permissionSlug);
     }
+
+    /**
+     * Verifica se o array permissions contém a permissão super.adm.
+     */
+    public function hasSuperAdminPermissionInArray(): bool
+    {
+        return $this->hasPermissionInArray('super.adm');
+    }
+
+    /**
+     * Verifica se o array permissions contém a permissão simple.adm.
+     */
+    public function hasSimpleAdminPermissionInArray(): bool
+    {
+        return $this->hasPermissionInArray('simple.adm');
+    }
+
+    /**
+     * Verifica se uma permissão específica existe no array permissions.
+     */
+    public function hasPermissionInArray(string $permissionSlug): bool
+    {
+        return is_array($this->permissions)
+            && in_array($permissionSlug, $this->permissions, true);
+    }
+
+    /**
+     * Verifica se o usuário possui alguma permissão administrativa no array.
+     */
+    public function isAdminInArray(): bool
+    {
+        return $this->hasSuperAdminPermissionInArray()
+            || $this->hasSimpleAdminPermissionInArray()
+            || $this->hasPermissionInArray('*');
+    }
+
+    /**
+     * Verifica se o usuário é algum tipo de administrador.
+     *
+     * Considera o status, o array permissions e a tabela pivot,
+     * conforme as regras dos métodos existentes.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->isSuperAdmin()
+            || $this->hasPermissionTo('simple.adm');
+    }
+
 }
