@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read UserModel $user
+ * @property-read User $user
  * @property-read PermissionModel $permission
  */
 class PermissionUserModel extends Model
@@ -47,7 +47,7 @@ class PermissionUserModel extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(UserModel::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function permission(): BelongsTo

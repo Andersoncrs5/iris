@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\TicketMessage\UpdateTicketMessageDTO;
 use App\DTOs\TicketMessage\CreateTicketMessageDTO;
 use App\Http\Requests\TicketMessage\CreateTicketMessageRequest;
+use App\Http\Requests\TicketMessage\UpdateTicketMessageRequest;
 use App\Models\TicketMessageModel;
 use App\Models\TicketModel;
 use App\Services\TicketMessage\CreateTicketMessageUseCase;
+use App\Services\TicketMessage\DeleteTicketMessageUseCase;
+use App\Services\TicketMessage\GetTicketMessageUseCase;
+use App\Services\TicketMessage\UpdateTicketMessageUseCase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,14 +20,20 @@ class TicketMessageController
 {
     public function __construct(
         private readonly CreateTicketMessageUseCase $createTicketMessageUseCase,
+        private readonly GetTicketMessageUseCase $getTicketMessageUseCase,
+        private readonly DeleteTicketMessageUseCase $deleteTicketMessageUseCase,
+        private readonly UpdateTicketMessageUseCase $updateTicketMessageUseCase,
     ) {}
 
-    public function show(int $id)
+    public function show(int $id): View
     {
-        return $id;
+        $viewData = $this->getTicketMessageUseCase->execute($id);
+
+        return view('ticket-message.show-details', $viewData);
     }
 
-    public function create(int $id, Request $request): View|RedirectResponse {
+    public function create(int $id, Request $request): View|RedirectResponse
+    {
         $ticket = TicketModel::find($id);
 
         if ($ticket === null) {
@@ -65,7 +76,6 @@ class TicketMessageController
                 ->with('error', 'Ticket not found.');
         }
 
-        
         $dto = CreateTicketMessageDTO::fromValidated(
             $request->validated(),
             (int) $ticket->id,
@@ -83,5 +93,52 @@ class TicketMessageController
             ->back()
             ->with('success', 'Comment added successfully.');
     }
-    
+
+    public function delete(int $id): RedirectResponse
+    {
+        $result = $this->deleteTicketMessageUseCase->execute($id);
+
+        if ($result->isFailure()) {
+            return redirect()
+                ->back()
+                ->with('error', $result->getError());
+        }
+
+        return redirect()
+            ->route('ticket.list')
+            ->with('success', 'Comment deleted successfully!');
+    }
+
+    public function edit(int $id)
+    {
+        $message = TicketMessageModel::find($id);
+
+        if ($message == null) {
+            return redirect()->back()->with("error", "Message not found");
+        }
+
+        return view("ticket-message.edit", compact("message"));
+    }
+
+    public function editForm(UpdateTicketMessageRequest $request,int $id): RedirectResponse {
+        $dto = UpdateTicketMessageDTO::fromValidated(
+            $request->validated()
+        );
+
+        $result = $this->updateTicketMessageUseCase->execute(
+            $dto, $id
+        );
+
+        if ($result->isFailure()) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $result->getError());
+        }
+
+        return redirect()
+            ->route('ticket.message.edit', ['id' => $id])
+            ->with('success', 'Message updated successfully.');
+    }
+
 }

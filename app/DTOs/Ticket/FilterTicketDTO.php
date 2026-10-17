@@ -7,54 +7,47 @@ use Illuminate\Http\Request;
 
 final readonly class FilterTicketDTO
 {
-    /**
-     * @param int|null $ticketNumber Public ticket number.
-     * @param int|null $userId Ticket owner's ID.
-     * @param int|null $agentId Assigned agent's ID.
-     * @param int|null $teamId Assigned team's ID.
-     * @param int|null $categoryId Category ID.
-     * @param int|null $statusId Status ID.
-     * @param int|null $priorityId Priority ID.
-     * @param string|null $subject Subject filter.
-     * @param bool $subjectIgnoreCase Whether subject matching ignores case.
-     * @param string|null $description Description filter.
-     * @param bool $descriptionIgnoreCase Whether description matching ignores case.
-     * @param string|null $source Ticket origin.
-     * @param int|null $satisfactionRatingMin Minimum satisfaction rating.
-     * @param int|null $satisfactionRatingMax Maximum satisfaction rating.
-     * @param string|null $satisfactionComment Satisfaction comment filter.
-     * @param bool $satisfactionCommentIgnoreCase Whether comment matching ignores case.
-     * @param bool|null $isEscalated Escalation state filter.
-     * @param string|null $openedAtFrom Start of the opening date range.
-     * @param string|null $openedAtTo End of the opening date range.
-     * @param string|null $lastActivityAtFrom Start of the last activity date range.
-     * @param string|null $lastActivityAtTo End of the last activity date range.
-     * @param string|null $firstResponseAtFrom Start of the first response date range.
-     * @param string|null $firstResponseAtTo End of the first response date range.
-     * @param string|null $resolvedAtFrom Start of the resolution date range.
-     * @param string|null $resolvedAtTo End of the resolution date range.
-     * @param string|null $closedAtFrom Start of the closing date range.
-     * @param string|null $closedAtTo End of the closing date range.
-     * @param string|null $dueAtFrom Start of the due date range.
-     * @param string|null $dueAtTo End of the due date range.
-     * @param string|null $createdAtFrom Start of the creation date range.
-     * @param string|null $createdAtTo End of the creation date range.
-     * @param string|null $updatedAtFrom Start of the update date range.
-     * @param string|null $updatedAtTo End of the update date range.
-     * @param string|null $trashed Soft delete filter: with or only.
-     * @param int $perPage Number of records per page.
-     * @param TicketColumnEnum $sortBy Allowed sorting column.
-     * @param string $sortOrder Sorting direction: asc or desc.
-     */
+    private const ALLOWED_SOURCES = [
+        'WEB',
+        'EMAIL',
+        'API',
+        'CHAT',
+        'WHATSAPP',
+        'PHONE',
+    ];
+
     public function __construct(
         public ?int $ticketNumber = null,
 
         public ?int $userId = null,
+        public ?string $userName = null,
+        public bool $userNameIgnoreCase = true,
+        public ?string $userEmail = null,
+        public bool $userEmailIgnoreCase = true,
+
         public ?int $agentId = null,
+        public ?string $agentName = null,
+        public bool $agentNameIgnoreCase = true,
+        public ?string $agentEmail = null,
+        public bool $agentEmailIgnoreCase = true,
+
         public ?int $teamId = null,
+
         public ?int $categoryId = null,
+        public ?string $categoryName = null,
+        public bool $categoryNameIgnoreCase = true,
+        public ?string $categorySlug = null,
+        public bool $categorySlugIgnoreCase = true,
+
         public ?int $statusId = null,
+        public ?string $statusName = null,
+        public bool $statusNameIgnoreCase = true,
+
         public ?int $priorityId = null,
+        public ?string $priorityName = null,
+        public bool $priorityNameIgnoreCase = true,
+        public ?string $codeName = null,
+        public bool $codeNameIgnoreCase = true,
 
         public ?string $subject = null,
         public bool $subjectIgnoreCase = true,
@@ -62,7 +55,8 @@ final readonly class FilterTicketDTO
         public ?string $description = null,
         public bool $descriptionIgnoreCase = true,
 
-        public ?string $source = null,
+        /** @var list<string> */
+        public array $source = [],
 
         public ?int $satisfactionRatingMin = null,
         public ?int $satisfactionRatingMax = null,
@@ -105,10 +99,6 @@ final readonly class FilterTicketDTO
 
     /**
      * Create the DTO from request query parameters.
-     *
-     * @param Request $request HTTP request.
-     *
-     * @return self
      */
     public static function fromRequest(Request $request): self
     {
@@ -133,47 +123,136 @@ final readonly class FilterTicketDTO
             $request->input('trashed')
         );
 
-        $trashed = in_array($trashedInput, ['with', 'only'], true)
+        $trashed = in_array(
+            $trashedInput,
+            ['with', 'only'],
+            true
+        )
             ? $trashedInput
-            : null;
-
-        $sourceInput = self::nullableString(
-            $request->input('source')
-        );
-
-        $sourceInput = $sourceInput !== null
-            ? strtoupper($sourceInput)
-            : null;
-
-        $allowedSources = [
-            'WEB',
-            'EMAIL',
-            'API',
-            'CHAT',
-            'WHATSAPP',
-            'PHONE',
-        ];
-
-        $source = in_array($sourceInput, $allowedSources, true)
-            ? $sourceInput
             : null;
 
         return new self(
             // Ticket identity
-            ticketNumber: self::nullableInteger(
+            ticketNumber: self::nullablePositiveInteger(
                 $request->input('ticket_number')
             ),
 
-            // Related entities
-            userId: self::nullableInteger($request->input('user_id')),
-            agentId: self::nullableInteger($request->input('agent_id')),
-            teamId: self::nullableInteger($request->input('team_id')),
-            categoryId: self::nullableInteger($request->input('category_id')),
-            statusId: self::nullableInteger($request->input('status_id')),
-            priorityId: self::nullableInteger($request->input('priority_id')),
+            // Ticket owner
+            userId: self::nullablePositiveInteger(
+                $request->input('user_id')
+            ),
+
+            userName: self::nullableString(
+                $request->input('user_name')
+            ),
+
+            userNameIgnoreCase: self::booleanOrDefault(
+                $request->input('user_name_ignore_case'),
+                true
+            ),
+
+            userEmail: self::nullableString(
+                $request->input('user_email')
+            ),
+
+            userEmailIgnoreCase: self::booleanOrDefault(
+                $request->input('user_email_ignore_case'),
+                true
+            ),
+
+            // Assigned agent
+            agentId: self::nullablePositiveInteger(
+                $request->input('agent_id')
+            ),
+
+            agentName: self::nullableString(
+                $request->input('agent_name')
+            ),
+
+            agentNameIgnoreCase: self::booleanOrDefault(
+                $request->input('agent_name_ignore_case'),
+                true
+            ),
+
+            agentEmail: self::nullableString(
+                $request->input('agent_email')
+            ),
+
+            agentEmailIgnoreCase: self::booleanOrDefault(
+                $request->input('agent_email_ignore_case'),
+                true
+            ),
+
+            // Team
+            teamId: self::nullablePositiveInteger(
+                $request->input('team_id')
+            ),
+
+            // Category
+            categoryId: self::nullablePositiveInteger(
+                $request->input('category_id')
+            ),
+
+            categoryName: self::nullableString(
+                $request->input('category_name')
+            ),
+
+            categoryNameIgnoreCase: self::booleanOrDefault(
+                $request->input('category_name_ignore_case'),
+                true
+            ),
+
+            categorySlug: self::nullableString(
+                $request->input('category_slug')
+            ),
+
+            categorySlugIgnoreCase: self::booleanOrDefault(
+                $request->input('category_slug_ignore_case'),
+                true
+            ),
+
+            // Status
+            statusId: self::nullablePositiveInteger(
+                $request->input('status_id')
+            ),
+
+            statusName: self::nullableString(
+                $request->input('status_name')
+            ),
+
+            statusNameIgnoreCase: self::booleanOrDefault(
+                $request->input('status_name_ignore_case'),
+                true
+            ),
+
+            // Priority
+            priorityId: self::nullablePositiveInteger(
+                $request->input('priority_id')
+            ),
+
+            priorityName: self::nullableString(
+                $request->input('priority_name')
+            ),
+
+            priorityNameIgnoreCase: self::booleanOrDefault(
+                $request->input('priority_name_ignore_case'),
+                true
+            ),
+
+            codeName: self::nullableString(
+                $request->input('code_name')
+            ),
+
+            codeNameIgnoreCase: self::booleanOrDefault(
+                $request->input('code_name_ignore_case'),
+                true
+            ),
 
             // Subject
-            subject: self::nullableString($request->input('subject')),
+            subject: self::nullableString(
+                $request->input('subject')
+            ),
+
             subjectIgnoreCase: self::booleanOrDefault(
                 $request->input('subject_ignore_case'),
                 true
@@ -183,26 +262,30 @@ final readonly class FilterTicketDTO
             description: self::nullableString(
                 $request->input('description')
             ),
+
             descriptionIgnoreCase: self::booleanOrDefault(
                 $request->input('description_ignore_case'),
                 true
             ),
 
-            // Ticket source
-            source: $source,
+            // Ticket sources: supports source[]=WEB&source[]=API
+            source: self::normalizeSources(
+                $request->input('source')
+            ),
 
-            // Satisfaction rating range
+            // Satisfaction rating
             satisfactionRatingMin: self::nullableInteger(
                 $request->input('satisfaction_rating_min')
             ),
+
             satisfactionRatingMax: self::nullableInteger(
                 $request->input('satisfaction_rating_max')
             ),
 
-            // Satisfaction comment
             satisfactionComment: self::nullableString(
                 $request->input('satisfaction_comment')
             ),
+
             satisfactionCommentIgnoreCase: self::booleanOrDefault(
                 $request->input('satisfaction_comment_ignore_case'),
                 true
@@ -213,71 +296,72 @@ final readonly class FilterTicketDTO
                 $request->input('is_escalated')
             ),
 
-            // Opened date range
-            openedAtFrom: self::nullableString(
+            // Date ranges
+            openedAtFrom: self::nullableDate(
                 $request->input('opened_at_from')
             ),
-            openedAtTo: self::nullableString(
+
+            openedAtTo: self::nullableDate(
                 $request->input('opened_at_to')
             ),
 
-            // Last activity date range
-            lastActivityAtFrom: self::nullableString(
+            lastActivityAtFrom: self::nullableDate(
                 $request->input('last_activity_at_from')
             ),
-            lastActivityAtTo: self::nullableString(
+
+            lastActivityAtTo: self::nullableDate(
                 $request->input('last_activity_at_to')
             ),
 
-            // First response date range
-            firstResponseAtFrom: self::nullableString(
+            firstResponseAtFrom: self::nullableDate(
                 $request->input('first_response_at_from')
             ),
-            firstResponseAtTo: self::nullableString(
+
+            firstResponseAtTo: self::nullableDate(
                 $request->input('first_response_at_to')
             ),
 
-            // Resolution date range
-            resolvedAtFrom: self::nullableString(
+            resolvedAtFrom: self::nullableDate(
                 $request->input('resolved_at_from')
             ),
-            resolvedAtTo: self::nullableString(
+
+            resolvedAtTo: self::nullableDate(
                 $request->input('resolved_at_to')
             ),
 
-            // Closing date range
-            closedAtFrom: self::nullableString(
+            closedAtFrom: self::nullableDate(
                 $request->input('closed_at_from')
             ),
-            closedAtTo: self::nullableString(
+
+            closedAtTo: self::nullableDate(
                 $request->input('closed_at_to')
             ),
 
-            // Due date range
-            dueAtFrom: self::nullableString(
+            dueAtFrom: self::nullableDate(
                 $request->input('due_at_from')
             ),
-            dueAtTo: self::nullableString(
+
+            dueAtTo: self::nullableDate(
                 $request->input('due_at_to')
             ),
 
-            // Creation date range
-            createdAtFrom: self::nullableString(
+            createdAtFrom: self::nullableDate(
                 $request->input('created_at_from')
             ),
-            createdAtTo: self::nullableString(
+
+            createdAtTo: self::nullableDate(
                 $request->input('created_at_to')
             ),
 
-            // Update date range
-            updatedAtFrom: self::nullableString(
+            updatedAtFrom: self::nullableDate(
                 $request->input('updated_at_from')
             ),
-            updatedAtTo: self::nullableString(
+
+            updatedAtTo: self::nullableDate(
                 $request->input('updated_at_to')
             ),
 
-            // Soft Deletes
+            // Soft deletes
             trashed: $trashed,
 
             // Pagination
@@ -299,10 +383,6 @@ final readonly class FilterTicketDTO
 
     /**
      * Normalize a value into a nullable string.
-     *
-     * @param mixed $value Value to normalize.
-     *
-     * @return string|null
      */
     private static function nullableString(mixed $value): ?string
     {
@@ -316,11 +396,7 @@ final readonly class FilterTicketDTO
     }
 
     /**
-     * Normalize a value into a nullable integer.
-     *
-     * @param mixed $value Value to normalize.
-     *
-     * @return int|null
+     * Normalize an integer.
      */
     private static function nullableInteger(mixed $value): ?int
     {
@@ -328,17 +404,60 @@ final readonly class FilterTicketDTO
             return null;
         }
 
-        $integer = filter_var($value, FILTER_VALIDATE_INT);
+        $integer = filter_var(
+            $value,
+            FILTER_VALIDATE_INT
+        );
 
         return $integer === false ? null : $integer;
     }
 
     /**
-     * Normalize a value into a nullable boolean.
+     * Normalize a positive integer, suitable for IDs.
+     */
+    private static function nullablePositiveInteger(
+        mixed $value
+    ): ?int {
+        $integer = self::nullableInteger($value);
+
+        return $integer !== null && $integer > 0
+            ? $integer
+            : null;
+    }
+
+    /**
+     * Normalize selected source values.
      *
-     * @param mixed $value Value to normalize.
-     *
-     * @return bool|null
+     * @return list<string>
+     */
+    private static function normalizeSources(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $values = is_array($value) ? $value : [$value];
+        $sources = [];
+
+        foreach ($values as $item) {
+            $source = self::nullableString($item);
+
+            if ($source === null) {
+                continue;
+            }
+
+            $source = strtoupper($source);
+
+            if (in_array($source, self::ALLOWED_SOURCES, true)) {
+                $sources[] = $source;
+            }
+        }
+
+        return array_values(array_unique($sources));
+    }
+
+    /**
+     * Normalize a nullable boolean.
      */
     private static function nullableBoolean(mixed $value): ?bool
     {
@@ -358,12 +477,7 @@ final readonly class FilterTicketDTO
     }
 
     /**
-     * Normalize a boolean value, falling back to the provided default.
-     *
-     * @param mixed $value Value to normalize.
-     * @param bool $default Default when the value is absent or invalid.
-     *
-     * @return bool
+     * Normalize a boolean with a default value.
      */
     private static function booleanOrDefault(
         mixed $value,
@@ -384,5 +498,60 @@ final readonly class FilterTicketDTO
         );
 
         return $boolean ?? $default;
+    }
+
+    /**
+     * Normalize a date or datetime.
+     *
+     * Supported formats:
+     * - YYYY-MM-DD
+     * - YYYY-MM-DD HH:MM
+     * - YYYY-MM-DD HH:MM:SS
+     * - The same datetime formats using "T" as separator.
+     *
+     * Invalid values are ignored.
+     */
+    private static function nullableDate(mixed $value): ?string
+    {
+        $value = self::nullableString($value);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $value = str_replace('T', ' ', $value);
+
+        $formats = [
+            ['!Y-m-d', 'Y-m-d', 'Y-m-d'],
+            ['!Y-m-d H:i', 'Y-m-d H:i', 'Y-m-d H:i:s'],
+            ['!Y-m-d H:i:s', 'Y-m-d H:i:s', 'Y-m-d H:i:s'],
+        ];
+
+        foreach ($formats as [$inputFormat, $expectedFormat, $outputFormat]) {
+            $date = \DateTimeImmutable::createFromFormat(
+                $inputFormat,
+                $value
+            );
+
+            $errors = \DateTimeImmutable::getLastErrors();
+
+            if (
+                $date === false
+                || (
+                    $errors !== false
+                    && (
+                        $errors['warning_count'] > 0
+                        || $errors['error_count'] > 0
+                    )
+                )
+                || $date->format($expectedFormat) !== $value
+            ) {
+                continue;
+            }
+
+            return $date->format($outputFormat);
+        }
+
+        return null;
     }
 }

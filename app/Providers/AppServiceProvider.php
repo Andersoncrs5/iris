@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Bootstrap\PermissionBootstrapper;
 use App\Bootstrap\SuperAdminBootstrapper;
+use App\Models\TicketMessageModel;
 use App\Models\TicketModel;
 use App\Models\User;
+use App\Policies\TicketMessagePolicy;
 use App\Policies\TicketModelPolicy;
 use App\Repository\Interfaces\ICategoryRepository;
 use App\Repository\Interfaces\IUserRepository;
@@ -37,10 +39,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::policy(TicketModel::class, TicketModelPolicy::class);
-
         $this->boostarp();
         $this->registerGates();
+        $this->setPolicy();
+    }
+
+    private function setPolicy()
+    {
+        Gate::policy(TicketModel::class, TicketModelPolicy::class);
+        Gate::policy(TicketMessageModel::class,TicketMessagePolicy::class,);
     }
 
     private function boostarp() {

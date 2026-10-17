@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\PermissionRequestStatus\PermissionRequestStatus;
+use App\Utils\Enums\PermissionRequestStatus\PermissionRequestStatus as EnumsPermissionRequestStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Models\Permission;
@@ -52,7 +52,7 @@ class PermissionRequestModel extends Model
         'user_id' => 'integer',
         'permission_id' => 'integer',
         'reviewed_by' => 'integer',
-        'status' => PermissionRequestStatus::class,
+        'status' => EnumsPermissionRequestStatus::class,
         'reviewed_at' => 'datetime',
     ];
 
@@ -65,7 +65,7 @@ class PermissionRequestModel extends Model
     }
 
     /**
-     * @return BelongsTo<Permission, $this>
+     * @return BelongsTo<PermissionModel, $this>
      */
     public function permission(): BelongsTo
     {
@@ -80,3 +80,4 @@ class PermissionRequestModel extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 }
+
