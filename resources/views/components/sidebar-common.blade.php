@@ -20,6 +20,13 @@
                 'list'   => ['route' => 'user.profile', 'can' => null],
                 'active' => ['user.profile'],
             ],
+            [
+                'label'  => 'My Permission Request',
+                'icon'   => 'fa-route',
+                'auth'   => true,
+                'list'   => ['route' => 'permission.request.my', 'can' => null],
+                'active' => ['permission.request.my'],
+            ],
         ],
 
         'Tickets' => [
@@ -82,12 +89,30 @@
                 'icon'     => 'fa-shield-halved',
                 'list'     => ['route' => 'permission.list', 'can' => 'permission.list'],
                 'create'   => ['route' => 'permission.create', 'can' => 'permission.create'],
-                'active'   => ['permission.*'],
+                'active'   => ['permission.list', 'permission.create'],
+            ],
+            [
+                'label'  => 'Permission Requests',
+                'icon'   => 'fa-clipboard-list',
+                'list'   => [
+                    'route' => 'permission.request.list',
+                    'can'   => 'permission.request.list',
+                ],
+                'active' => ['permission.request.*'],
+            ],
+            [
+                'label'  => 'Permission Users',
+                'icon'   => 'fa-user-shield',
+                'list'   => [
+                    'route' => 'permission.user.list',
+                    'can'   => 'permission.user.list',
+                ],
+                'create'   => ['route' => 'permission.user.create', 'can' => 'permission.user.create'],
+                'active' => ['permission.user.*'],
             ],
         ],
     ];
 
-    // Mantém só o que o usuário pode ver (mesma lógica dos @can/@auth anteriores)
     $navVisible = [];
 
     foreach ($navGroups as $groupLabel => $items) {
