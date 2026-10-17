@@ -140,6 +140,58 @@ class PermissionBootstrapper
         ['name' => 'Add Ticket Watcher', 'slug' => 'ticket.watcher.create', 'module' => 'ticket_watchers', 'description' => 'Allows adding watchers to a ticket.'],
         ['name' => 'Remove Ticket Watcher', 'slug' => 'ticket.watcher.delete', 'module' => 'ticket_watchers', 'description' => 'Allows removing watchers from a ticket.'],
         ['name' => 'Restore Ticket Watcher', 'slug' => 'ticket.watcher.restore', 'module' => 'ticket_watchers', 'description' => 'Allows restoring soft-deleted ticket watchers.'],
+
+        // ==========================================
+        // PERMISSION REQUESTS (Solicitações de Permissão)
+        // ==========================================
+        [
+            'name' => 'List Permission Requests',
+            'slug' => 'permission.request.list',
+            'module' => 'permission_requests',
+            'description' => 'Allows listing permission requests.',
+        ],
+        [
+            'name' => 'Read Permission Request',
+            'slug' => 'permission.request.view',
+            'module' => 'permission_requests',
+            'description' => 'Allows viewing permission request details.',
+        ],
+        [
+            'name' => 'Create Permission Request',
+            'slug' => 'permission.request.create',
+            'module' => 'permission_requests',
+            'description' => 'Allows submitting permission requests.',
+        ],
+        [
+            'name' => 'Update Permission Request',
+            'slug' => 'permission.request.update',
+            'module' => 'permission_requests',
+            'description' => 'Allows updating pending permission requests.',
+        ],
+        [
+            'name' => 'Delete Permission Request',
+            'slug' => 'permission.request.delete',
+            'module' => 'permission_requests',
+            'description' => 'Allows deleting pending permission requests.',
+        ],
+        [
+            'name' => 'Mark Permission Request as Viewed',
+            'slug' => 'permission.request.mark-viewed',
+            'module' => 'permission_requests',
+            'description' => 'Allows marking permission requests as viewed.',
+        ],
+        [
+            'name' => 'Change Permission Request Status',
+            'slug' => 'permission.request.status.update',
+            'module' => 'permission_requests',
+            'description' => 'Allows changing the status of permission requests.',
+        ],
+        [
+            'name' => 'Restore Permission Request',
+            'slug' => 'permission.request.restore',
+            'module' => 'permission_requests',
+            'description' => 'Allows restoring deleted permission requests.',
+        ],
     ];
 
     public function run(): void
