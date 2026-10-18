@@ -1,6 +1,52 @@
-version: "3.8"
-
 services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: iris_app
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            APP_NAME: IRIS
+            APP_ENV: local
+            APP_DEBUG: "true"
+            APP_URL: http://localhost:8000
+            DB_CONNECTION: pgsql
+            DB_HOST: postgres
+            DB_PORT: 5432
+            DB_DATABASE: ${DB_DATABASE:-iris_db}
+            DB_USERNAME: ${DB_USERNAME:-root}
+            DB_PASSWORD: ${DB_PASSWORD:-89928234472747237}
+            REDIS_CLIENT: predis
+            REDIS_HOST: redis
+            REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+            REDIS_PORT: 6379
+            CACHE_STORE: redis
+            SESSION_DRIVER: redis
+            QUEUE_CONNECTION: redis
+            LOG_CHANNEL: single
+            OTEL_PHP_AUTOLOAD_ENABLED: "true"
+            OTEL_SERVICE_NAME: iris
+            OTEL_RESOURCE_ATTRIBUTES: deployment.environment=local
+            OTEL_TRACES_EXPORTER: otlp
+            OTEL_METRICS_EXPORTER: otlp
+            OTEL_LOGS_EXPORTER: none
+            OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+            OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4318
+            OTEL_PROPAGATORS: baggage,tracecontext
+        ports:
+            - "8000:8000"
+        volumes:
+            - iris_storage:/var/www/html/storage
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            alloy:
+                condition: service_started
+
     postgres:
         image: postgres:16-alpine
         container_name: iris_postgres
@@ -8,9 +54,9 @@ services:
         ports:
             - "${DB_PORT:-5433}:5432"
         environment:
-            POSTGRES_DB: "${DB_DATABASE:-iris_db}"
-            POSTGRES_USER: "${DB_USERNAME:-root}"
-            POSTGRES_PASSWORD: "${DB_PASSWORD:-89928234472747237}"
+            POSTGRES_DB: ${DB_DATABASE:-iris_db}
+            POSTGRES_USER: ${DB_USERNAME:-root}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-89928234472747237}
         volumes:
             - postgres_data:/var/lib/postgresql/data
         healthcheck:
@@ -37,8 +83,133 @@ services:
             timeout: 5s
             retries: 5
 
+    alloy:
+        image: grafana/alloy:latest
+        container_name: iris_alloy
+        restart: unless-stopped
+        command:
+            - run
+            - --server.http.listen-addr=0.0.0.0:12345
+            - /etc/alloy/config.alloy
+        ports:
+            - "12345:12345" # Alloy UI/health
+            - "4317:4317" # OTLP gRPC
+            - "4318:4318" # OTLP HTTP
+        volumes:
+            - ./docker/observability/config.alloy:/etc/alloy/config.alloy:ro
+            - iris_storage:/var/log/iris/storage:ro
+            - alloy_data:/var/lib/alloy/data
+        depends_on:
+            - prometheus
+            - loki
+            - tempo
+
+    prometheus:
+        image: prom/prometheus:v3.15.0
+        container_name: iris_prometheus
+        restart: unless-stopped
+        command:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=15d
+            - --web.enable-remote-write-receiver
+        ports:
+            - "9090:9090"
+        volumes:
+            - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+            - prometheus_data:/prometheus
+        depends_on:
+            - postgres-exporter
+            - redis-exporter
+
+    loki:
+        image: grafana/loki:latest
+        container_name: iris_loki
+        restart: unless-stopped
+        command: -config.file=/etc/loki/loki.yaml
+        ports:
+            - "3100:3100"
+        volumes:
+            - ./docker/observability/loki.yaml:/etc/loki/loki.yaml:ro
+            - loki_data:/loki
+
+    tempo:
+        image: grafana/tempo:3.1.0
+        container_name: iris_tempo
+        restart: unless-stopped
+        command: ["-config.file=/etc/tempo/tempo.yaml"]
+        ports:
+            - "3200:3200"
+        volumes:
+            - ./docker/observability/tempo.yaml:/etc/tempo/tempo.yaml:ro
+            - tempo_data:/var/tempo
+
+    grafana:
+        image: grafana/grafana:latest
+        container_name: iris_grafana
+        restart: unless-stopped
+        environment:
+            GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+            GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+            GF_AUTH_ANONYMOUS_ENABLED: "false"
+        ports:
+            - "3000:3000"
+        volumes:
+            - grafana_data:/var/lib/grafana
+            - ./docker/observability/grafana/provisioning/datasources/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+        depends_on:
+            - prometheus
+            - loki
+            - tempo
+
+    postgres-exporter:
+        image: prometheuscommunity/postgres-exporter:latest
+        container_name: iris_postgres_exporter
+        restart: unless-stopped
+        environment:
+            DATA_SOURCE_URI: postgres:5432/${DB_DATABASE:-iris_db}?sslmode=disable
+            DATA_SOURCE_USER: ${DB_USERNAME:-root}
+            DATA_SOURCE_PASS: ${DB_PASSWORD:-89928234472747237}
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    redis-exporter:
+        image: oliver006/redis_exporter:latest
+        container_name: iris_redis_exporter
+        restart: unless-stopped
+        environment:
+            REDIS_ADDR: redis://redis:6379
+        depends_on:
+            redis:
+                condition: service_healthy
+
+    cadvisor:
+        image: gcr.io/cadvisor/cadvisor:latest
+        container_name: cadvisor
+        restart: unless-stopped
+        privileged: true
+        ports:
+            - "8085:8080"
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:ro
+            - /sys:/sys:ro
+            - /var/lib/docker:/var/lib/docker:ro
+            - /dev/disk:/dev/disk:ro
+        devices:
+            - /dev/kmsg
+
 volumes:
     postgres_data:
-        driver: local
     redis_data:
-        driver: local
+    iris_storage:
+    alloy_data:
+    prometheus_data:
+    loki_data:
+    tempo_data:
+    grafana_data:
+
+networks:
+    iris_network:
+        driver: bridge

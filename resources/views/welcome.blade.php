@@ -40,7 +40,7 @@
     <div class="fixed inset-0 -z-10 h-full w-full overflow-hidden bg-[#07070d]" aria-hidden="true">
         {{-- O vídeo é escondido para quem prefere menos movimento --}}
         <video autoplay loop muted playsinline class="absolute inset-0 h-full w-full object-cover motion-reduce:hidden">
-            <source src="{{ Vite::asset('resources/videos/singularity-cosmic-vortex-moewalls-com.mp4') }}" type="video/mp4">
+            <source src="{{ asset('videos/singularity-cosmic-vortex-moewalls-com.mp4') }}" type="video/mp4">
         </video>
 
         {{-- Escurece o vídeo e protege a leitura do texto --}}

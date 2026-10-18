@@ -34,7 +34,7 @@
         <!-- Background Video -->
         <div class="fixed inset-0 w-full h-full -z-10 overflow-hidden">
             <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover">
-                <source src="{{ Vite::asset('resources/videos/singularity-cosmic-vortex-moewalls-com.mp4') }}" type="video/mp4">
+                <source src="{{ asset('videos/singularity-cosmic-vortex-moewalls-com.mp4') }}" type="video/mp4">
             </video>
             <!-- Dark Overlay for contrast -->
             <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
