@@ -1,11 +1,45 @@
 pipeline {
     agent any
 
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        timeout(time: 45, unit: 'MINUTES')
+        skipDefaultCheckout(true)
+    }
+
     environment {
         IMAGE_REPO = 'andersoncrms/iris'
     }
 
     stages {
+        stage('Checkout & Metadata') {
+            steps {
+                deleteDir()
+                checkout scm
+
+                sh 'mkdir -p reports'
+
+                script {
+                    env.GIT_SHA = sh(
+                        script: 'git rev-parse --short=8 HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    env.IMAGE_TAG =
+                        "${env.BUILD_NUMBER}-${env.GIT_SHA}"
+
+                    env.CI_IMAGE =
+                        "iris-ci:${env.IMAGE_TAG}"
+                }
+
+                echo "Commit: ${env.GIT_SHA}"
+                echo "Image tag: ${env.IMAGE_TAG}"
+            }
+        }
+
         stage('Build image') {
             steps {
                 sh '''
@@ -58,4 +92,15 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo 'CI concluída: testes, segurança e publicação aprovados.'
+        }
+
+        failure {
+            echo 'CI falhou. Consulte a etapa e os relatórios arquivados.'
+        }
+    }
+
 }
