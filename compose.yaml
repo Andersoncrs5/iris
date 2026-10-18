@@ -152,6 +152,8 @@ services:
             GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
             GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
             GF_AUTH_ANONYMOUS_ENABLED: "false"
+            GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+
         ports:
             - "3000:3000"
         volumes:
@@ -186,7 +188,7 @@ services:
 
     cadvisor:
         image: gcr.io/cadvisor/cadvisor:latest
-        container_name: cadvisor
+        container_name: cadvisor-iris
         restart: unless-stopped
         privileged: true
         ports:

@@ -361,7 +361,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[1050px] text-left text-sm">
+                <table class="w-full min-w-[1200px] text-left text-sm">
                     <thead class="border-b border-white/[0.08] bg-white/[0.02] text-xs text-gray-500">
                         <tr>
                             @foreach ([
@@ -385,6 +385,11 @@
                                     </a>
                                 </th>
                             @endforeach
+
+                            {{-- Actions --}}
+                            <th scope="col" class="px-5 py-3.5 text-right font-medium">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
 
@@ -467,10 +472,23 @@
                                         <span class="text-xs text-gray-600">Never logged in</span>
                                     @endif
                                 </td>
+
+                                {{-- View user details --}}
+                                <td class="px-5 py-4 text-right">
+                                    <a
+                                        href="{{ route('user.show', ['id' => $user->id]) }}"
+                                        class="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-indigo-400/20 bg-indigo-500/10 px-3 text-xs font-semibold text-indigo-200 transition hover:border-indigo-400/40 hover:bg-indigo-500/20 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
+                                        title="View details for {{ $user->name }}"
+                                        aria-label="View details for {{ $user->name }}"
+                                    >
+                                        <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                        <span>View details</span>
+                                    </a>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-20 text-center">
+                                <td colspan="8" class="px-6 py-20 text-center">
                                     <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] text-gray-500">
                                         <i class="fa-solid fa-users text-2xl" aria-hidden="true"></i>
                                     </div>

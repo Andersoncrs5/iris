@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Utils\Snowflake\IdGeneratorInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class SuperAdminBootstrapper
 {
@@ -16,13 +17,29 @@ class SuperAdminBootstrapper
         /** @var IdGeneratorInterface $idGenerator */
         $idGenerator = app(IdGeneratorInterface::class);
 
+        $email    = config('iris.super_admin.email');
+        $password = config('iris.super_admin.password');
+
+        if (blank($password)) {
+            if (app()->isProduction()) {
+                throw new RuntimeException(
+                    'SUPER_ADMIN_PASSWORD must be set when APP_ENV=production.'
+                );
+            }
+
+            // Conveniência apenas fora de produção.
+            $password = 'password123';
+        }
+
+        // O closure só é avaliado quando o usuário ainda não existe
+        // (evita gerar hash bcrypt e ID snowflake à toa a cada execução).
         $admin = User::firstOrCreate(
-            ['email' => 'admin@admin.com'],
-            [
+            ['email' => $email],
+            fn () => [
                 'id'        => $idGenerator->generate(),
-                'name'      => 'Super Admin',
-                'full_name' => 'Administrator System',
-                'password'  => Hash::make('password123'),
+                'name'      => config('iris.super_admin.name'),
+                'full_name' => config('iris.super_admin.full_name'),
+                'password'  => Hash::make($password),
             ]
         );
 

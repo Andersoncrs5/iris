@@ -1,58 +1,69 @@
+# syntax=docker/dockerfile:1
+
 FROM node:24-alpine AS frontend
 WORKDIR /app
+
 COPY package.json package-lock.json ./
 RUN npm ci
+
 COPY . .
+
 RUN npm run build
+
 
 FROM php:8.5-cli-alpine AS app
 WORKDIR /var/www/html
 
-RUN apk add --no-cache \
-        curl \
-        icu-libs \
-        libpq \
-        libzip \
-        oniguruma \
-    && apk add --no-cache --virtual .build-deps \
-        $PHPIZE_DEPS \
-        icu-dev \
-        libpq-dev \
-        libzip-dev \
-        oniguruma-dev \
-        linux-headers \
-    && docker-php-ext-install -j"$(nproc)" \
+COPY --from=ghcr.io/mlocati/php-extension-installer:latest \
+     /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN apk add --no-cache curl \
+    && install-php-extensions \
         bcmath \
         intl \
-        mbstring \
+        opentelemetry \
         pcntl \
         pdo_pgsql \
-        zip \
-    && pecl install opentelemetry-1.4.2 \
-    && docker-php-ext-enable opentelemetry \
-    && apk del .build-deps
+        zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY . .
-COPY --from=frontend /app/public/build ./public/build
-
+COPY composer.json composer.lock ./
 RUN composer install \
         --no-dev \
         --no-interaction \
         --prefer-dist \
         --no-progress \
-        --optimize-autoloader \
         --no-scripts \
-    && APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= php artisan package:discover --ansi \
-    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+        --no-autoloader
+
+COPY . .
+COPY --from=frontend /app/public/build ./public/build
+
+RUN APP_ENV=testing APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+        composer dump-autoload --optimize --no-dev \
+    && mkdir -p \
+        storage/app/public \
+        storage/framework/cache/data \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        bootstrap/cache \
+    && APP_ENV=testing APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+        php artisan storage:link \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
+
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENV PHP_CLI_SERVER_WORKERS=4
 
 USER www-data
 EXPOSE 8000
 
-HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=5 \
+HEALTHCHECK --interval=20s --timeout=5s --start-period=40s --retries=5 \
     CMD curl -fsS http://127.0.0.1:8000/up || exit 1
 
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

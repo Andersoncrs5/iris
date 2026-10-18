@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Bootstrap\PermissionBootstrapper;
-use App\Bootstrap\SuperAdminBootstrapper;
 use App\Models\TicketMessageModel;
 use App\Models\TicketModel;
 use App\Models\User;
@@ -16,7 +14,6 @@ use App\Utils\Enums\SlugPermissionEnum;
 use App\Utils\Snowflake\IdGeneratorInterface;
 use App\Utils\Snowflake\SnowflakeIdGenerator;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,30 +31,20 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ICategoryRepository::class, \App\Repository\Provider\CategoryRepository::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         if ($this->app->runningUnitTests()) {
             return;
         }
-        $this->boostarp();
+
         $this->registerGates();
         $this->setPolicy();
     }
 
-    private function setPolicy()
+    private function setPolicy(): void
     {
         Gate::policy(TicketModel::class, TicketModelPolicy::class);
-        Gate::policy(TicketMessageModel::class,TicketMessagePolicy::class,);
-    }
-
-    private function boostarp() {
-        if (Schema::hasTable('permissions') && Schema::hasTable('users')) {
-            (new PermissionBootstrapper())->run();
-            (new SuperAdminBootstrapper())->run();
-        }
+        Gate::policy(TicketMessageModel::class, TicketMessagePolicy::class);
     }
 
     private function registerGates(): void
@@ -67,12 +54,12 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
         });
-        
+
         foreach (SlugPermissionEnum::cases() as $permission) {
             Gate::define($permission->value, function (User $user) use ($permission) {
                 return is_array($user->permissions) && in_array(
-                    $permission->value, 
-                    $user->permissions, 
+                    $permission->value,
+                    $user->permissions,
                     true
                 );
             });
