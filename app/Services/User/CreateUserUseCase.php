@@ -5,22 +5,26 @@ namespace App\Services\User;
 use App\DTOs\User\UserRegisterDTO;
 use App\Models\User;
 use App\Repository\Interfaces\IUserRepository;
-use Illuminate\Support\Facades\Hash; 
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
-class CreateUserUseCase {
-
+class CreateUserUseCase
+{
     public function __construct(
         private readonly IUserRepository $repository
     ) {}
 
-    public function Execute(UserRegisterDTO $dto): User {
-        $user = new User();
+    public function execute(UserRegisterDTO $dto): User
+    {
+        return DB::transaction(function () use ($dto): User {
+            $user = new User();
 
-        $user->name = $dto->name;
-        $user->email = ($dto->email);
-        $user->full_name = $dto->fullName;
-        $user->password = Hash::make($dto->password);
+            $user->name = $dto->name;
+            $user->email = $dto->email;
+            $user->full_name = $dto->fullName;
+            $user->password = Hash::make($dto->password);
 
-        return $this->repository->save($user);
+            return $this->repository->save($user);
+        }, 3);
     }
 }

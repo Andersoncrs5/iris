@@ -5,17 +5,26 @@ namespace App\Services\TicketPriority;
 use App\DTOs\TicketPriority\UpdateTicketPriorityDTO;
 use App\Models\TicketPriorityModel;
 use App\Utils\Result\Result;
+use App\Utils\Snowflake\IdGeneratorInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class UpdateTicketPriorityUseCase
 {
+    public function __construct(
+        private readonly IdGeneratorInterface $idGenerator
+    ) {}
+
     public function execute(
         UpdateTicketPriorityDTO $dto,
         int $id
     ): Result {
         Gate::authorize('ticket.priority.update');
+
+        if (!$this->idGenerator->isValid($id)) {
+            return Result::fail('Invalid ticket priority ID.', 400);
+        }
 
         try {
             return DB::transaction(function () use ($dto, $id): Result {
@@ -44,7 +53,9 @@ class UpdateTicketPriorityUseCase
 
                     foreach ($otherDefaults as $otherPriority) {
                         $otherPriority->is_default = false;
-                        $otherPriority->version = (int) $otherPriority->version + 1;
+                        $otherPriority->version =
+                            (int) $otherPriority->version + 1;
+
                         $otherPriority->save();
                     }
                 }

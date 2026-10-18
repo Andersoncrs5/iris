@@ -5,6 +5,7 @@ namespace App\Services\TicketStatus;
 use App\DTOs\TicketStatus\CreateTicketStatusDTO;
 use App\Utils\Result\Result;
 use App\Utils\Snowflake\IdGeneratorInterface;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class CreateTicketStatusUseCase
@@ -13,15 +14,17 @@ class CreateTicketStatusUseCase
         private readonly IdGeneratorInterface $idGenerator
     ) {}
 
-    public function execute(CreateTicketStatusDTO $dto): Result 
+    public function execute(CreateTicketStatusDTO $dto): Result
     {
         Gate::authorize('ticket.status.create');
-        
-        $status = $dto->toModel();
-        $status->id = $this->idGenerator->generate();
 
-        $status->save();
+        return DB::transaction(function () use ($dto): Result {
+            $status = $dto->toModel();
+            $status->id = $this->idGenerator->generate();
 
-        return Result::ok($status);
+            $status->save();
+
+            return Result::ok($status);
+        }, 3);
     }
 }

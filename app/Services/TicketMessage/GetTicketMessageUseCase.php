@@ -4,18 +4,21 @@ namespace App\Services\TicketMessage;
 
 use App\Models\TicketMessageModel;
 use App\Models\TicketModel;
+use App\Utils\Result\Result;
+use App\Utils\Snowflake\IdGeneratorInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Gate;
 
 final class GetTicketMessageUseCase
 {
+    public function __construct(
+        private readonly IdGeneratorInterface $idGenerator,
+    ) {}
+
     /**
-     * Busca a mensagem e pagina as respostas da conversa.
-     *
-     * @param int $id ID da mensagem.
-     * @param int $perPage Quantidade de respostas por página.
      *
      * @return array{
      *     ticketMessage: TicketMessageModel,
@@ -23,7 +26,7 @@ final class GetTicketMessageUseCase
      *     replies: LengthAwarePaginator
      * }
      *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
     public function execute(int $id, int $perPage = 10): array
@@ -34,6 +37,11 @@ final class GetTicketMessageUseCase
             throw new AuthorizationException(
                 'Authentication is required to view ticket messages.',
             );
+        }
+
+        if (!$this->idGenerator->isValid($id)) {
+            throw (new ModelNotFoundException())
+                ->setModel(TicketMessageModel::class, [$id]);
         }
 
         $canViewInternal = $user->can(
@@ -48,10 +56,8 @@ final class GetTicketMessageUseCase
                 'ticket.category',
                 'ticket.priority',
                 'ticket.status',
-
-                // O eager loading de parentMessage recebe BelongsTo.
                 'parentMessage' => function (BelongsTo $relation) use ($canViewInternal): void {
-                    if (! $canViewInternal) {
+                    if (!$canViewInternal) {
                         $relation->where('is_internal', false);
                     }
 
@@ -68,11 +74,10 @@ final class GetTicketMessageUseCase
 
         Gate::forUser($user)->authorize('view', $ticket);
 
-        if ($message->is_internal && ! $canViewInternal) {
+        if ($message->is_internal && !$canViewInternal) {
             abort(404);
         }
 
-        // Todas as respostas permanecem vinculadas à mensagem raiz.
         $threadRootId = $message->parent_id
             ?? $message->getKey();
 
@@ -81,13 +86,11 @@ final class GetTicketMessageUseCase
             ->where('parent_id', $threadRootId)
             ->with('user');
 
-        // A mensagem que já aparece em destaque não deve se repetir na lista.
         if ($message->parent_id !== null) {
             $repliesQuery->where('id', '<>', $message->getKey());
         }
 
-        // Não disponibiliza notas internas para usuários sem autorização.
-        if (! $canViewInternal) {
+        if (!$canViewInternal) {
             $repliesQuery->where('is_internal', false);
         }
 

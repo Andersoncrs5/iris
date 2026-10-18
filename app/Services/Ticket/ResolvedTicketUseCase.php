@@ -5,15 +5,24 @@ namespace App\Services\Ticket;
 use App\Models\TicketModel;
 use App\Models\TicketStatusModel;
 use App\Utils\Result\Result;
+use App\Utils\Snowflake\IdGeneratorInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ResolvedTicketUseCase
 {
+    public function __construct(
+        private readonly IdGeneratorInterface $idGenerator
+    ) {}
+
     public function execute(int $id): Result
     {
         Gate::authorize('ticket.resolve');
+
+        if (!$this->idGenerator->isValid($id)) {
+            return Result::fail('Invalid ticket ID.', 400);
+        }
 
         try {
             return DB::transaction(function () use ($id): Result {
@@ -69,7 +78,6 @@ class ResolvedTicketUseCase
                 $ticket->version = (int) $ticket->version + 1;
 
                 $ticket->save();
-
                 $ticket->refresh();
 
                 $ticket->load([

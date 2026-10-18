@@ -9,6 +9,7 @@ use App\Utils\Enums\TicketMessage\TicketMessageTypeEnum;
 use App\Utils\Result\Result;
 use App\Utils\Snowflake\IdGeneratorInterface;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,17 @@ class CreateTicketMessageUseCase
     {
         Gate::authorize('ticket.message.create');
 
+        if (!$this->idGenerator->isValid($dto->ticketId)) {
+            return Result::fail('Invalid ticket ID.', 400);
+        }
+
+        if (
+            $dto->parentId !== null
+            && !$this->idGenerator->isValid($dto->parentId)
+        ) {
+            return Result::fail('Invalid parent message ID.', 400);
+        }
+
         if ($dto->type === TicketMessageTypeEnum::SYSTEM_EVENT) {
             throw ValidationException::withMessages([
                 'type' => 'System events cannot be created by users.',
@@ -33,7 +45,7 @@ class CreateTicketMessageUseCase
             Gate::authorize('ticket.message.internal.create');
         }
 
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         if ($userId === null) {
             throw new AuthorizationException(
@@ -72,9 +84,7 @@ class CreateTicketMessageUseCase
             ]);
 
             $message->id = $this->idGenerator->generate();
-
             $message->parent_id = $dto->parentId;
-
             $message->save();
 
             return Result::ok($message);

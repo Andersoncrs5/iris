@@ -29,17 +29,16 @@ class DeleteOwnTicketUseCase
                     ->lockForUpdate()
                     ->first();
 
-                if (!$ticket) {
+                if ($ticket === null) {
                     return Result::fail(
                         'Ticket not found or you do not have permission to delete it.'
                     );
                 }
 
-                // Soft delete only the authenticated user's ticket.
                 $ticket->delete();
 
                 return Result::ok($ticket);
-            });
+            }, 3);
         } catch (QueryException $exception) {
             report($exception);
 

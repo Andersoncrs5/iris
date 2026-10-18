@@ -1,10 +1,11 @@
-<?php 
+<?php
 
 namespace App\Services\Category;
 
 use App\DTOs\Category\CreateCategoryDTO;
 use App\Models\CategoryModel;
 use App\Repository\Interfaces\ICategoryRepository;
+use Illuminate\Support\Facades\DB;
 
 class CreateCategoryUseCase
 {
@@ -14,14 +15,10 @@ class CreateCategoryUseCase
 
     public function execute(CreateCategoryDTO $dto): CategoryModel
     {
-        try {
+        return DB::transaction(function () use ($dto): CategoryModel {
             $data = $dto->toModel();
 
-            $created = $this->repository->save($data);
-
-            return $created;
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+            return $this->repository->save($data);
+        }, 3);
     }
 }

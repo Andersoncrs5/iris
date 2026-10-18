@@ -5,6 +5,7 @@ namespace App\Services\Ticket;
 use App\DTOs\Ticket\UpdateMyOwnTicketDTO;
 use App\Models\TicketModel;
 use App\Utils\Result\Result;
+use App\Utils\Snowflake\IdGeneratorInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,11 +13,19 @@ use Illuminate\Support\Facades\Gate;
 
 class UpdateMyOwnTicketUseCase
 {
+    public function __construct(
+        private readonly IdGeneratorInterface $idGenerator
+    ) {}
+
     public function execute(
         UpdateMyOwnTicketDTO $dto,
         int $id
     ): Result {
         Gate::authorize('ticket.own.update');
+
+        if (!$this->idGenerator->isValid($id)) {
+            return Result::fail('Invalid ticket ID.', 400);
+        }
 
         $userId = Auth::id();
 
@@ -42,7 +51,6 @@ class UpdateMyOwnTicketUseCase
                     );
                 }
 
-                // Optimistic concurrency control.
                 if ((int) $ticket->version !== $dto->version) {
                     return Result::fail(
                         'This ticket has been modified by another user. Refresh the page and try again.'
@@ -58,11 +66,9 @@ class UpdateMyOwnTicketUseCase
                 }
 
                 $ticket->fill($attributes);
-
                 $ticket->version = (int) $ticket->version + 1;
 
                 $ticket->save();
-
                 $ticket->refresh();
 
                 $ticket->load([
